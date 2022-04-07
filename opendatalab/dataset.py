@@ -29,8 +29,8 @@ class Dataset(object):
         self.oss_path_prefix = ""
         self.init_oss_bucket()
 
-    def get(self, key: str):
-        object_key = f"{self.oss_path_prefix}/{self.storage_format}/" + key
+    def get(self, filepath: str):
+        object_key = f"{self.oss_path_prefix}/{self.storage_format}/" + filepath
         try:
             return self.oss_bucket.get_object(object_key)
         except oss2.exceptions.ServerError as e:

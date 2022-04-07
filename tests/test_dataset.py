@@ -30,3 +30,8 @@ def test_select_endpoint():
         }
     )
     assert endpoint == "https://oss-cn-shanghai.aliyuncs.com"
+
+
+def test_client():
+    client = opendatalab.Client(host="http://opendatalab-test3.shlab.tech")
+    print(client.get(4, "t10k-images-idx3-ubyte"))
