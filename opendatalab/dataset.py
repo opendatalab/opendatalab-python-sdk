@@ -22,7 +22,7 @@ class Dataset(object):
         self.init_oss_bucket()
 
     def get(self, filepath: str):
-        object_key = f"{self.oss_path_prefix}/{self.storage_format}/" + filepath
+        object_key = self.get_object_key_prefix() + filepath
         try:
             return self.oss_bucket.get_object(object_key)
         except oss2.exceptions.ServerError as e:
@@ -41,6 +41,14 @@ class Dataset(object):
         bucket_name = path_info[0]
         self.oss_bucket = oss2.Bucket(auth, self.select_endpoint(sts), bucket_name)
         self.oss_path_prefix = "/".join(path_info[1:])
+
+    def get_oss_bucket(self) -> oss2.Bucket:
+        if self.oss_bucket is None:
+            self.init_oss_bucket()
+        return self.oss_bucket
+
+    def get_object_key_prefix(self) -> str:
+        return f"{self.oss_path_prefix}/{self.storage_format}/"
 
     @classmethod
     def select_endpoint(cls, sts):

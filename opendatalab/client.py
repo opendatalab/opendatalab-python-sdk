@@ -12,7 +12,7 @@ class Client:
             self.token = get_api_token_from_env()
         self.dataset_map = {}
 
-    def _get_dataset(self, dataset_id: int, storage_format: str):
+    def get_dataset(self, dataset_id: int, storage_format: str) -> Dataset:
         if dataset_id not in self.dataset_map:
             self.dataset_map[dataset_id] = Dataset(
                 f"{self.host}/datasets/{dataset_id}", self.token, storage_format
@@ -20,5 +20,5 @@ class Client:
         return self.dataset_map[dataset_id]
 
     def get(self, dataset_id: int, filepath: str, storage_format: str = "source"):
-        dataset = self._get_dataset(dataset_id, storage_format)
+        dataset = self.get_dataset(dataset_id, storage_format)
         return dataset.get(filepath)

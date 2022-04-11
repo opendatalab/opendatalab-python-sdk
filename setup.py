@@ -1,11 +1,19 @@
+import os
 import setuptools
+
+about = {}
+here = os.path.abspath(os.path.dirname(__file__))
+with open(
+    os.path.join(here, "opendatalab", "__version__.py"), "r", encoding="utf-8"
+) as f:
+    exec(f.read(), about)
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="opendatalab-python-sdk",
-    version="0.0.1",
+    name=about["__name__"],
+    version=about["__version__"],
     author="Zhang Chaobin",
     author_email="zhangchaobin@sensetime.com",
     description="Python SDK for reading dataset files.",
@@ -22,5 +30,5 @@ setuptools.setup(
     ],
     packages=["opendatalab"],
     python_requires=">=3.6",
-    install_requires=["requests", "oss2"],
+    install_requires=["requests", "oss2", "Click", "tqdm"],
 )
