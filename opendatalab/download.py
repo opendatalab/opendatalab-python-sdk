@@ -17,6 +17,7 @@ def download_object(
     lock: threading.RLock,
     root: str,
     pbar: tqdm,
+    limit_speed: int,
 ):
     def progress_callback(bytes_consumed, _):
         with lock:
@@ -27,6 +28,8 @@ def download_object(
             key_to_downloaded_size_map[object_info.key] = bytes_consumed
 
     try:
+        headers = dict()
+        headers[oss2.models.OSS_TRAFFIC_LIMIT] = str(limit_speed)
         filename = os.path.join(root, object_info.key.split("/")[-1])
         oss2.resumable_download(
             bucket,
@@ -36,10 +39,19 @@ def download_object(
             part_size=10 * 1024 * 1024,
             progress_callback=progress_callback,
             num_threads=1,
+            headers=headers,
         )
         return True, None
     except Exception as e:
         return False, e
+
+
+def get_oss_traffic_limit(limit_speed):
+    if limit_speed < 245760:
+        return 245760
+    if limit_speed > 838860800:
+        return 838860800
+    return limit_speed
 
 
 @click.command()
@@ -108,9 +120,12 @@ def download(name, dataset_id, storage_format, root, thread, limit_speed, host, 
     pbar = tqdm(total=total_size, unit="B", unit_scale=True)
     lock = threading.RLock()
     error_object_list = []
+    limit_speed_per_thread = get_oss_traffic_limit(int(limit_speed * 1024 * 8 / thread))
     with ThreadPoolExecutor(max_workers=thread) as executor:
         future_to_obj = {
-            executor.submit(download_object, bucket, obj, lock, root, pbar): obj
+            executor.submit(
+                download_object, bucket, obj, lock, root, pbar, limit_speed_per_thread
+            ): obj
             for obj in object_info_list
         }
         for future in as_completed(future_to_obj):
