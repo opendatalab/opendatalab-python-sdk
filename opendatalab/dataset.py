@@ -47,7 +47,14 @@ class Dataset(object):
             self.init_oss_bucket()
         return self.oss_bucket
 
-    def get_object_key_prefix(self) -> str:
+    def get_object_key_prefix(self, compressed=False, standard_version='0.3') -> str:
+        if compressed:
+            if self.storage_format == "standard":
+                # We use 0.3 by default.
+                return f"{self.oss_path_prefix}/{self.storage_format}_compressed/f{standard_version}/"
+            else:
+                return f"{self.oss_path_prefix}/{self.storage_format}_compressed/"
+
         return f"{self.oss_path_prefix}/{self.storage_format}/"
 
     @classmethod

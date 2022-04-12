@@ -75,6 +75,12 @@ def get_oss_traffic_limit(limit_speed):
     show_default=True,
 )
 @click.option(
+    "--standard_version",
+    default="0.3",
+    help="Dataset standard format version",
+    show_default=True,
+)
+@click.option(
     "--root", default=".", help="Data root path, default: current working path."
 )
 @click.option(
@@ -102,11 +108,11 @@ def get_oss_traffic_limit(limit_speed):
     help="OpenDatalab user api token",
     envvar="OPENDATALAB-API-TOKEN",
 )
-def download(name, dataset_id, storage_format, root, thread, limit_speed, host, token):
+def download(name, dataset_id, storage_format, standard_version, root, thread, limit_speed, host, token):
     cli = Client(host, token)
     dataset = cli.get_dataset(dataset_id, storage_format)
     bucket = dataset.get_oss_bucket()
-    prefix = dataset.get_object_key_prefix()
+    prefix = dataset.get_object_key_prefix(compressed=True, standard_version=standard_version)
     object_info_list = []
     total_size = 0
     click.echo(f"Scanning file list")
