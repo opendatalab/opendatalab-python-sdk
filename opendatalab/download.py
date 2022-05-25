@@ -1,12 +1,13 @@
+from logging import root
 import threading
 import click
 import oss2
 import os
 
 from tqdm import tqdm
-from opendatalab import Client
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed, thread
 
+from .client import Client
 
 key_to_downloaded_size_map = {}
 
@@ -31,6 +32,7 @@ def download_object(
         headers = dict()
         headers[oss2.models.OSS_TRAFFIC_LIMIT] = str(limit_speed)
         filename = os.path.join(root, object_info.key.split("/")[-1])
+        print(f"\t start downloading file: {filename} ...")
         oss2.resumable_download(
             bucket,
             object_info.key,
@@ -53,8 +55,12 @@ def get_oss_traffic_limit(limit_speed):
         return 838860800
     return limit_speed
 
+@click.group()
+def cli():
+    """python sdk for opendatalab dataset download
+    """
 
-@click.command()
+@cli.command()
 @click.option(
     "--name",
     "-n",
@@ -62,26 +68,8 @@ def get_oss_traffic_limit(limit_speed):
     help="Name of OpenDatalab dataset which you want to download.",
 )
 @click.option(
-    "--dataset_id",
-    default=0,
-    help="Id of OpenDatalab dataset which you want to download.",
-)
-@click.option(
-    "--storage_format",
-    "-f",
-    default="source",
-    type=click.Choice(["source", "standard"], case_sensitive=False),
-    help="Dataset storage format, available options: source, standard.",
-    show_default=True,
-)
-@click.option(
-    "--standard_version",
-    default="0.3",
-    help="Dataset standard format version",
-    show_default=True,
-)
-@click.option(
-    "--root", default=".", help="Data root path, default: current working path."
+    "--root", 
+    default=".", help="Local path, default: current working path."
 )
 @click.option(
     "--thread",
@@ -98,7 +86,7 @@ def get_oss_traffic_limit(limit_speed):
 )
 @click.option(
     "--host",
-    default="https://opendatalab.com",
+    default="http://opendatalab-test2.shlab.tech", #  https://opendatalab.com/
     help="OpenDatalab host",
     show_default=True,
 )
@@ -108,11 +96,11 @@ def get_oss_traffic_limit(limit_speed):
     help="OpenDatalab user api token",
     envvar="OPENDATALAB-API-TOKEN",
 )
-def download(name, dataset_id, storage_format, standard_version, root, thread, limit_speed, host, token):
+def download(name, root, thread, limit_speed, host, token):
     cli = Client(host, token)
-    dataset = cli.get_dataset(dataset_id, storage_format)
+    dataset = cli.get_dataset(name)
     bucket = dataset.get_oss_bucket()
-    prefix = dataset.get_object_key_prefix(compressed=True, standard_version=standard_version)
+    prefix = dataset.get_object_key_prefix()
     object_info_list = []
     total_size = 0
     click.echo(f"Scanning file list")
@@ -146,5 +134,12 @@ def download(name, dataset_id, storage_format, standard_version, root, thread, l
         # TODO
 
 
-if __name__ == "__main__":
-    download()
+# if __name__ == "__main__":
+#     name = 'FB15k'
+#     root = os.path.join(os.curdir,'output')
+#     thread = 2
+#     limit_speed = 0
+#     host = 'http://opendatalab-test2.shlab.tech'
+#     token = ""
+
+#     download(name,root,thread, limit_speed,host,token)

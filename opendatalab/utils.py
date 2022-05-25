@@ -8,8 +8,8 @@ def parse_url(url: str) -> (str, str):
     if o.port is not None:
         host += ":" + str(o.port)
 
-    dataset_id = o.path.split("/")[-1]
-    return host, dataset_id
+    dataset_name = o.path.split("/")[-1]
+    return host, dataset_name
 
 
 def get_api_token_from_env():

@@ -7,15 +7,12 @@ from requests.adapters import HTTPAdapter
 
 
 class Dataset(object):
-    def __init__(
-        self, url: str, token: str = "", storage_format: str = "source"
-    ) -> None:
-        host, dataset_id = parse_url(url)
-        self.dataset_id = dataset_id
+    def __init__(self, url: str, token: str = "") -> None:
+        host, dataset_name = parse_url(url)
+        self.dataset_name = dataset_name
         if token == "":
             token = get_api_token_from_env()
         self.open_data_lab_api = OpenDataLabAPI(host, token)
-        self.storage_format = storage_format
 
         self.oss_bucket = None
         self.oss_path_prefix = ""
@@ -33,7 +30,7 @@ class Dataset(object):
             return self.oss_bucket.get_object(object_key)
 
     def init_oss_bucket(self):
-        sts = self.open_data_lab_api.get_dataset_sts(self.dataset_id)
+        sts = self.open_data_lab_api.get_dataset_sts(self.dataset_name)
         auth = oss2.StsAuth(
             sts["accessKeyId"], sts["accessKeySecret"], sts["securityToken"]
         )
@@ -47,15 +44,8 @@ class Dataset(object):
             self.init_oss_bucket()
         return self.oss_bucket
 
-    def get_object_key_prefix(self, compressed=False, standard_version='0.3') -> str:
-        if compressed:
-            if self.storage_format == "standard":
-                # We use 0.3 by default.
-                return f"{self.oss_path_prefix}/{self.storage_format}_compressed/f{standard_version}/"
-            else:
-                return f"{self.oss_path_prefix}/{self.storage_format}_compressed/"
-
-        return f"{self.oss_path_prefix}/{self.storage_format}/"
+    def get_object_key_prefix(self) -> str:
+        return f"{self.oss_path_prefix}/source_compressed/"
 
     @classmethod
     def select_endpoint(cls, sts):

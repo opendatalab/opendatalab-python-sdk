@@ -1,2 +1,2 @@
-__name__ = "opendatalab-python-sdk"
-__version__ = "0.0.1"
+__name__ = "opendatalab"
+__version__ = "0.0.1-beta"
