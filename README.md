@@ -8,7 +8,9 @@ preview dataset info online
 Usage:
 ```
 1. install
-pip install opendatalab==0.0.1-beta
+    pip install opendatalab==0.0.1b0
+
+    if pip failure, please try to install with .whl
 
 
 download dataset into local path
