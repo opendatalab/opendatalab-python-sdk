@@ -4,9 +4,12 @@
 # Copyright 2022 Shanghai AI Lab. Licensed under MIT License.
 #
 
-"""OpenDataLab python SDK."""
+"""Client Module"""
 
-from opendatalab.__version__ import __version__
 from opendatalab.client.client import Client
+from opendatalab.cli.config import config
 
-__all__ = ["__version__", "Client"]
+__all__ = [
+    "Client",
+    "config",
+]

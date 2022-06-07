@@ -1,27 +1,125 @@
-## OpenDataLab Python SDK
+# OpenDataLab Python SDK
 
-# Features:
+
+[![Downloads](https://pepy.tech/badge/opendatalab/month)](https://pepy.tech/project/opendatalab)
+[![PyPI](https://img.shields.io/pypi/v/opendatalab)](https://pypi.org/project/opendatalab/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/opendatalab)](https://pypi.org/project/opendatalab/)
+
+---
+
+**IMPORTANT**: OpenDataLab SDK status: WIP, which will not ensure the necessary compatibility of OpenAPI and SDK. As a result, please use the SDK with released version later.  
+
+**Please wait for the released version!!!**
+
+---
+
+OpenDataLab Python SDK is a python library to access [Opendatalab](https://opendatalab.com/)
+and use open datasets.  
+It provides:
+
+-   A pythonic way to access opendatalab resources by OpenDataHub OpenAPI.
+-   An convient CLI tool `opendatalab` to access open datasets.
+-   Rich information about the open datasets.
+
+## Installation
+
+```console
+pip3 install opendatalab
 ```
-download dataset from offical website: https://opendatalab-test2.shlab.tech/
-preview dataset info online
+
+## Usage:
+
+An **account** is needed to access to opendatalab service.
+Please visit [offical websit](https://opendatalab.com/register) to get the account username and password first.
+
+### Help
+show cmd help
+```cmd
+opendatalab -h
+opendatalab --help
 ```
-Usage:
+
+### Show Version
+```cmd
+opendatalab version
+# opendatalab, 0.0.1b1
 ```
-1. install
-    pip install opendatalab==0.0.1b0
 
-    if pip failure, please try to install with .whl
+### Login
+login with opendatalab username and password 
+```cmd
+$ opendatalab login 
+Username: aaa@email.com 
+Password:
+# Login as aaa@email.com
 
-
-download dataset into local path
-2. script
-$ python -m opendatalab download --help    
- 
-
-example:
-1). download dataset source compressed
-    $ python -m opendatalab download --name FB15k --root /home/XXX/coco
+$ opendatalab login -u aaa@email.com 
+Password:
+# Login as aaa@email.com
 
 ```
-Support
-More see: https://opendatalab.com/docs/3
+or 
+```python
+from opendatalab import Client
+odl = Client.auth(username, pasword)
+
+```
+
+### Logout
+logout current opendatalab account 
+```cmd
+opendatalab logout
+```
+or 
+```python
+from opendatalab import opendatalab
+Client.logout()
+```
+
+### ls 
+list all dataset by offset, limit
+```cmd
+opendatalab ls -n coco
+```
+or
+```python
+from opendatalab import opendatalab
+opendatalab.ls(name='coco')
+```
+
+### info
+show dataset info in json format
+```cmd
+opendatalab info coco
+```
+or
+```python
+from opendatalab import opendatalab
+opendatalab.get_info()
+```
+
+### search
+search dataset by name
+```cmd
+opendatalab search coco 
+```
+or
+```python
+from opendatalab import opendatalab
+opendatalab.search('coco')
+```
+
+### get
+get dataset files into local path
+```cmd
+opendatalab get coco 
+```
+or
+```python
+from opendatalab import opendatalab
+opendatalab.get(name='coco')
+``` 
+
+## Documentation
+
+More information can be found on the [documentation site](https://opendatalab.com/docs)
