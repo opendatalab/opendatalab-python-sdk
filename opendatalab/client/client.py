@@ -2,13 +2,14 @@
 #
 # Copyright 2022 Shanghai AI Lab. Licensed under MIT License.
 #
+from opendatalab.client.api import OpenDataLabAPI
 from opendatalab.dataset.dataset import Dataset
 from opendatalab.utils import get_api_token_from_env
 
 
 class Client:
     def __init__(self, host: str = "http://opendatalab-test2.shlab.tech", token: str = ""):
-        """_summary_
+        """opendatalab client
 
         Args:
             host str:  Defaults to "https://opendatalab.com/".
@@ -19,6 +20,7 @@ class Client:
         if self.token == "":
             self.token = get_api_token_from_env()
         self.dataset_map = {}
+        self.odl_api = None
 
     def get_dataset(self, dataset_name: str) -> Dataset:
         if dataset_name not in self.dataset_map:
@@ -29,3 +31,7 @@ class Client:
     def get(self, dataset_name: int, filepath: str):
         dataset = self.get_dataset(dataset_name)
         return dataset.get(filepath)
+    
+    def get_api(self):
+        self.odl_api = OpenDataLabAPI(self.host, self.token)
+        return self.odl_api

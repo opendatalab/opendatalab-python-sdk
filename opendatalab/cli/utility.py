@@ -21,14 +21,15 @@ _Callable = TypeVar("_Callable", bound=Callable[..., None])
 class ContextInfo:
     """This class contains command context."""
 
-    def __init__(self, url: str):
+    def __init__(self, url: str, token: str):
         self.url = url
+        self.token = token
         self.config = client_config
         self.conf_file = client_config._get_config_filepath()
         self._conf_content = {} 
     
     def get_client(self) -> Client:
-        return Client(self.url)
+        return Client(self.url, self.token)
     
     def get_content(self):
         return self._conf_content
@@ -36,16 +37,19 @@ class ContextInfo:
     def set_content(self, content: dict) -> None:
         for key, value in content.items():
             self._conf_content[key] = value
-        
-       
-    def read_config(self) -> dict:
-        with open(self.conf_file, 'r') as jf:
-            config_content = json.load(jf)
             
+    def get_config_content(self):
+        try:
+            with open(self.conf_file, 'r') as jf:
+                config_content = json.load(jf)
+        except json.decoder.JSONDecodeError:
+            config_content = {}
+        
         return config_content
     
     def update_config(self, content: dict) -> None:
         with open(self.conf_file, 'w') as jf:
+            lines = jf.readlines()
             json.dump(content, jf)
             self.set_content(content)
     
@@ -54,17 +58,14 @@ class ContextInfo:
         self._conf_content = {}
         
             
-  
-
-
-def _implement_cli(ctx: click.Context, url: str) -> None:
-    ctx.obj = ContextInfo(url)
+def _implement_cli(ctx: click.Context, url: str, token: str) -> None:
+    ctx.obj = ContextInfo(url, token)
     conf_content = {
                 'endpoint': url,
                 'user.email': "",
                 'user.token': "",
                 }
-    ctx.obj.update_config(conf_content)
+    # ctx.obj.update_config(conf_content)
 
 
 def error(message: str):

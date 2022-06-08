@@ -14,8 +14,9 @@ from opendatalab.cli.utility import ContextInfo
 @click.group(context_settings={"help_option_names": ("-h", "--help")})
 @click.version_option(__version__)
 @click.option("-u", "--url", type=str, default="http://opendatalab-test2.shlab.tech", help="The login url.", hidden=True)
+@click.option("-t", "--token", type=str, default="", help="OpenDatalab user api token", envvar="OPENDATALAB-API-TOKEN",)
 @click.pass_context
-def cli(ctx: click.Context, url: str) -> None:
+def cli(ctx: click.Context, url: str, token: str) -> None:
     """You can use `opendatalab <command>` to access open datasets.\f
 
     Arguments:
@@ -25,13 +26,13 @@ def cli(ctx: click.Context, url: str) -> None:
     # ctx.ensure_object(dict)
     
     from opendatalab.cli.utility import _implement_cli
-    _implement_cli(ctx, url)
+    _implement_cli(ctx, url, token)
     
 command = partial(cli.command, cls=CustomCommand)
 
 @command(
     synopsis=(
-        "$ opendatalab version      # show opendatalab version info",
+        "$ opendatalab version      # show opendatalab version.",
     )
 )
 def version():
@@ -94,12 +95,7 @@ def login(obj: ContextInfo, username: str, password: str):
         "$ opendatalab ls dataset/sub_dir      # list dataset/sub_dir files.",
     )
 )
-@click.option(
-    "--name",
-    "-n",
-    default="",
-    help="Name of OpenDataLab dataset which you want to download.",
-)
+@click.argument("name", nargs=1)
 @click.pass_obj
 def ls(obj: ContextInfo, name: str) -> None:
     """List files of the dataset.\f
@@ -117,12 +113,7 @@ def ls(obj: ContextInfo, name: str) -> None:
         "$ opendatalab search dataset_name      # search dataset with name.",
     )
 )
-@click.option(
-    "--name",
-    "-n",
-    default="",
-    help="Name of OpenDataLab dataset which you want to download.",
-)
+@click.argument("name", nargs=1)
 @click.pass_obj
 def search(obj: ContextInfo, name):
     """Search dataset info.\f
@@ -141,12 +132,7 @@ def search(obj: ContextInfo, name):
         "$ opendatalab info dataset_name      # show dataset info.",
     )
 )
-@click.option(
-    "--name",
-    "-n",
-    default="",
-    help="Name of OpenDataLab dataset which you want to download.",
-)
+@click.argument("name", nargs=1)
 @click.pass_obj
 def info(obj: ContextInfo, name):
     """Print dataset info.\f
@@ -158,17 +144,13 @@ def info(obj: ContextInfo, name):
     from opendatalab.cli.info import _implement_info
     _implement_info(obj, name)
     
+    
 @command(
     synopsis=(
         "$ opendatalab get dataset_name      # get dataset files into local.",
     )
 )
-@click.option(
-    "--name",
-    "-n",
-    default="",
-    help="Name of OpenDataLab dataset which you want to download.",
-)
+@click.argument("name", nargs=1)
 @click.option(
     "--thread",
     "-t",

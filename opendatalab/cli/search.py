@@ -9,4 +9,5 @@ from opendatalab.client.client import Client
 def _implement_search(obj: ContextInfo, dataset: str) -> None:
     
     client = obj.get_client()
-    client.get_dataset(dataset)
+    odl_api = client.get_api()
+    odl_api.search_dataset(dataset)

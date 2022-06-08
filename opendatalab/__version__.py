@@ -5,4 +5,4 @@
 
 """OpenDataLab python SDK version info."""
 
-__version__ = "0.0.1b14"
+__version__ = "0.0.1b51"

@@ -36,7 +36,7 @@ def download_object(
         headers = dict()
         headers[oss2.models.OSS_TRAFFIC_LIMIT] = str(limit_speed)
         filename = os.path.join(root, object_info.key.split("/")[-1])
-        print(f"\t start downloading file: {filename} ...")
+        print(f"Start downloading file: {filename} ...")
         oss2.resumable_download(
             bucket,
             object_info.key,
@@ -67,17 +67,15 @@ def _implement_get(obj: ContextInfo, name: str, thread: int , limit_speed: int) 
     prefix = dataset.get_object_key_prefix()
     object_info_list = []
     local_dir = Path.cwd().joinpath(name)
-    if not Path(local_dir).exists:
+    if not Path(local_dir).exists():
         Path(local_dir).mkdir(parents=True)
         
     total_size = 0
-    click.echo(f"Scanning file list")
+    print(f"local dir: {local_dir}")
     for info in oss2.ObjectIteratorV2(bucket, prefix):
         object_info_list.append(info)
         total_size += info.size
-    click.echo(
-        f"Scan file list done, total size: {tqdm.format_sizeof(total_size)}, file numbers: {len(object_info_list)}"
-    )
+    click.echo(f"Scan done, total size: {tqdm.format_sizeof(total_size)}, files: {len(object_info_list)}")
 
     pbar = tqdm(total=total_size, unit="B", unit_scale=True)
     lock = threading.RLock()
