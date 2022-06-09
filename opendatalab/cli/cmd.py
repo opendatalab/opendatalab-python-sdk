@@ -13,8 +13,8 @@ from opendatalab.cli.utility import ContextInfo
 
 @click.group(context_settings={"help_option_names": ("-h", "--help")})
 @click.version_option(__version__)
-@click.option("-u", "--url", type=str, default="http://opendatalab-test2.shlab.tech", help="The login url.", hidden=True)
-@click.option("-t", "--token", type=str, default="", help="OpenDatalab user api token", envvar="OPENDATALAB-API-TOKEN",)
+@click.option("-u", "--url", type=str, default="https://opendatalab-ut.shlab.tech", help="The login url.", hidden=True) 
+@click.option("-t", "--token", type=str, default="", help="OpenDatalab user api token", hidden=True, envvar="OPENDATALAB-API-TOKEN",)
 @click.pass_context
 def cli(ctx: click.Context, url: str, token: str) -> None:
     """You can use `opendatalab <command>` to access open datasets.\f
@@ -110,21 +110,21 @@ def ls(obj: ContextInfo, name: str) -> None:
 
 @command(
     synopsis=(
-        "$ opendatalab search dataset_name      # search dataset with name.",
+        "$ opendatalab search keywords      # search dataset with keywords.",
     )
 )
-@click.argument("name", nargs=1)
+@click.argument("keywords", nargs=1)
 @click.pass_obj
-def search(obj: ContextInfo, name):
+def search(obj: ContextInfo, keywords):
     """Search dataset info.\f
 
     Args:
         obj (ContextInfo): context info
-        name (str): dataset name
+        keywords (str): dataset keywords
     """
     from opendatalab.cli.search import _implement_search
 
-    _implement_search(obj, name)
+    _implement_search(obj, keywords)
     
 
 @command(

@@ -26,46 +26,85 @@ class ContextInfo:
         self.token = token
         self.config = client_config
         self.conf_file = client_config._get_config_filepath()
-        self._conf_content = {} 
+        self._conf_content = self.check_config()
+        odl_cookie = self._conf_content['user.token'] if self._conf_content['user.token'] else ""
+        self.cookie = odl_cookie
+        # print(f"Context init exec...")
+        # print(f"Context odl_cookie: {self.cookie}")
+
     
     def get_client(self) -> Client:
-        return Client(self.url, self.token)
+        return Client(self.url, self.token, self.cookie)
     
     def get_content(self):
         return self._conf_content
     
     def set_content(self, content: dict) -> None:
+        # print(f"Context set_content: self.content: {self._conf_content}, content: {content}")
         for key, value in content.items():
             self._conf_content[key] = value
             
+            if key == 'user.token' and not content[key]:
+                self.cookie = content[key]
+            
     def get_config_content(self):
         try:
-            with open(self.conf_file, 'r') as jf:
-                config_content = json.load(jf)
+            with open(self.conf_file, 'r') as f:
+                config_content = json.load(f)
         except json.decoder.JSONDecodeError:
             config_content = {}
         
         return config_content
     
+    def check_config(self):
+        res = self.get_config_content()
+        if not res:
+            init_config_dict = {
+                'endpoint'  : self.url,
+                'user.email': '',
+                'user.token': '',
+                'odl_anonymous': 'i_am_anonymous_from_python_sdk',                
+            }
+            result = init_config_dict
+            # print(f"check_config: {init_config_dict}")
+            with open(self.conf_file, 'w') as f:
+                json.dump(init_config_dict, f, indent=4, sort_keys=True, separators=(',', ':'))
+        else:
+            result = res
+        
+        return result
+             
+
+    
     def update_config(self, content: dict) -> None:
-        with open(self.conf_file, 'w') as jf:
-            lines = jf.readlines()
-            json.dump(content, jf)
+        # print(f"Context update_config: {content}")
+        res = self.get_config_content()
+        if res:
             self.set_content(content)
+            with open(self.conf_file, 'w') as f:
+                f.seek(0)
+                json.dump(self._conf_content, f, indent=4, sort_keys=True, separators=(',', ':'))
+            
     
     def clean_config(self):
-        self.config.clean_config()
-        self._conf_content = {}
+        res = self.get_config_content()
+        if not res:
+            self.check_config()
+        else:
+            with open(self.conf_file, "w") as f:
+                if 'user.token' in res.keys():
+                    res['user.token'] = ''
+                if 'user.email' in res.keys():
+                    res['user.email'] = ''
+                f.seek(0)
+                json.dump(res, f, indent=4, sort_keys=True, separators=(',', ':'))
+            
+        return res
         
             
 def _implement_cli(ctx: click.Context, url: str, token: str) -> None:
     ctx.obj = ContextInfo(url, token)
-    conf_content = {
-                'endpoint': url,
-                'user.email': "",
-                'user.token': "",
-                }
-    # ctx.obj.update_config(conf_content)
+    # ctx.obj.check_config()
 
 
 def error(message: str):

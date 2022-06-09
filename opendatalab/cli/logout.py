@@ -8,9 +8,7 @@ import click
 @exception_handler
 def _implement_logout(obj: ContextInfo) -> None:
     
-    #TODO: bugfix, config_content seems not update even config changes
     config_content = obj.get_config_content()
-    print(f"config_content: {config_content}")
     username = ""
     if 'user.email' in config_content.keys():
         username = config_content['user.email']

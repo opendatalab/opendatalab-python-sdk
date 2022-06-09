@@ -8,15 +8,17 @@ from opendatalab.utils import get_api_token_from_env
 
 
 class Client:
-    def __init__(self, host: str = "http://opendatalab-test2.shlab.tech", token: str = ""):
+    def __init__(self, host: str = "https://opendatalab-ut.shlab.tech", token: str = "", odl_cookie: str = ""):
         """opendatalab client
 
         Args:
-            host str:  Defaults to "https://opendatalab.com/".
+            host str: [prd]: "https://opendatalab.com".[debug]: http://opendatalab-test2.shlab.tech
             token str: Defaults to "".
+            odl_cookie str: Defaults to "".
         """
         self.host = host
         self.token = token
+        self.odl_cookie = odl_cookie
         if self.token == "":
             self.token = get_api_token_from_env()
         self.dataset_map = {}
@@ -25,7 +27,7 @@ class Client:
     def get_dataset(self, dataset_name: str) -> Dataset:
         if dataset_name not in self.dataset_map:
             self.dataset_map[dataset_name] = Dataset(
-                f"{self.host}/datasets/{dataset_name}", self.token)
+                f"{self.host}/datasets/{dataset_name}", self.token, self.odl_cookie)
         return self.dataset_map[dataset_name]
 
     def get(self, dataset_name: int, filepath: str):
@@ -33,5 +35,5 @@ class Client:
         return dataset.get(filepath)
     
     def get_api(self):
-        self.odl_api = OpenDataLabAPI(self.host, self.token)
+        self.odl_api = OpenDataLabAPI(self.host, self.token, self.odl_cookie)
         return self.odl_api

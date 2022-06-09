@@ -11,13 +11,13 @@ from requests.adapters import HTTPAdapter
 
 
 class Dataset(object):
-    def __init__(self, url: str, token: str = "") -> None:
+    def __init__(self, url: str, token: str = "", odl_cookie: str= "") -> None:
         # print(f"ds url: {url}, token: {token}")
         host, dataset_name = parse_url(url)
         self.dataset_name = dataset_name
         if token == "":
             token = get_api_token_from_env()
-        self.open_data_lab_api = OpenDataLabAPI(host, token)
+        self.open_data_lab_api = OpenDataLabAPI(host, token, odl_cookie)
 
         self.oss_bucket = None
         self.oss_path_prefix = ""
@@ -42,8 +42,6 @@ class Dataset(object):
         )
         path_info = sts["path"].replace("oss://", "").split("/")
         bucket_name = path_info[0]
-        # print(f"test-1-> bucket: {bucket_name}, oss_path_prefix: {self.oss_path_prefix}, oss_bucket: {self.oss_bucket}")
-
         self.oss_bucket = oss2.Bucket(auth, self.select_endpoint(sts), bucket_name)
         self.oss_path_prefix = "/".join(path_info[1:])
         # print(f"test-2-> bucket: {bucket_name}, oss_path_prefix: {self.oss_path_prefix}, oss_bucket: {self.oss_bucket}")

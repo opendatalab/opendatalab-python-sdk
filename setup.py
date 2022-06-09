@@ -16,5 +16,4 @@ setuptools.setup(
     project_urls={
         "Bug Tracker": "https://gitlab.shlab.tech/dps/opendatalab-python-sdk/-/tree/dev-datahub/-/issues",
     },
-    install_requires=["requests", "oss2", "Click", "tqdm"],
 )
