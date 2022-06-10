@@ -9,9 +9,9 @@ import oss2
 import os
 
 from tqdm import tqdm
-from concurrent.futures import ThreadPoolExecutor, as_completed, thread
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from opendatalab.cli.utility import ContextInfo, exception_handler
-from opendatalab.client.client import Client
+from opendatalab.utils import bytes2human
 
 
 key_to_downloaded_size_map = {}
@@ -65,26 +65,45 @@ def get_oss_traffic_limit(limit_speed):
 
 @exception_handler
 def _implement_get(obj: ContextInfo, name: str, thread: int , limit_speed: int) -> None:
+    ds_split = name.split("/")
+    if len(ds_split) > 1:
+        dataset_name = ds_split[0]
+        sub_dir = "/".join(ds_split[1:])
+    else:
+        dataset_name = name
+        sub_dir = ""
+        
     client = obj.get_client()
-    dataset = client.get_dataset(name)
+    dataset = client.get_dataset(dataset_name)
     bucket = dataset.get_oss_bucket()
     prefix = dataset.get_object_key_prefix()
-    object_info_list = []
-    download_info_body = []
-    local_dir = Path.cwd().joinpath(name)
+    local_dir = Path.cwd().joinpath(dataset_name)
     if not Path(local_dir).exists():
         Path(local_dir).mkdir(parents=True)
-        
-    total_size = 0
+      
+    total_files, total_size = 0, 0
+    object_info_list = []
+    download_info_body = []
     print(f"local dir: {local_dir}")
     for info in oss2.ObjectIteratorV2(bucket, prefix):
-        object_info_list.append(info)
-        total_size += info.size
-        file_name = Path(info.key).name
-        download_info_body.append({"name": file_name, "size": info.size})
+        if not info.is_prefix() and not info.key.endswith("/"):        
+            file_name = "/".join(info.key.split("/")[2:])
+            f_name = Path(file_name).name
+            if not sub_dir:
+                object_info_list.append(info)
+                total_files = total_files + 1
+                total_size = total_size + info.size                
+                download_info_body.append({"name": f_name, "size": info.size})
+            elif sub_dir and file_name.startswith(sub_dir):
+                object_info_list.append(info)
+                total_files = total_files + 1
+                total_size = total_size + info.size 
+                download_info_body.append({"name": f_name, "size": info.size})
+            else:
+                pass 
         
-    client.get_api().call_download_log(name, download_info_body)
-    click.echo(f"Scan done, total size: {tqdm.format_sizeof(total_size)}, files: {len(object_info_list)}")
+    client.get_api().call_download_log(dataset_name, download_info_body)
+    click.echo(f"Scan done, total files: {len(object_info_list)}, total size: {tqdm.format_sizeof(total_size)}")
 
     pbar = tqdm(total=total_size, unit="B", unit_scale=True)
     lock = threading.RLock()

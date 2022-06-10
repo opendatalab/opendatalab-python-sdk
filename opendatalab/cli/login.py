@@ -1,7 +1,6 @@
 #
 # Copyright 2022 Shanghai AI Lab. Licensed under MIT License.
 #
-import click
 from opendatalab.cli.utility import ContextInfo, exception_handler
 
 

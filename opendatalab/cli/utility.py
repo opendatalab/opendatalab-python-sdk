@@ -8,15 +8,14 @@ import sys
 import json
 from functools import wraps
 from typing import Any, Callable, TypeVar
-
 import click
 
 from opendatalab.cli.config import config as client_config
 from opendatalab.client.client import Client
+from opendatalab.utils import UUID
 from opendatalab.exception import OpenDataLabError, OpenDataLabInternalError
 
 _Callable = TypeVar("_Callable", bound=Callable[..., None])
-
 
 class ContextInfo:
     """This class contains command context."""
@@ -29,8 +28,6 @@ class ContextInfo:
         self._conf_content = self.check_config()
         odl_cookie = self._conf_content['user.token'] if self._conf_content['user.token'] else ""
         self.cookie = odl_cookie
-        # print(f"Context init exec...")
-        # print(f"Context odl_cookie: {self.cookie}")
 
     
     def get_client(self) -> Client:
@@ -40,7 +37,6 @@ class ContextInfo:
         return self._conf_content
     
     def set_content(self, content: dict) -> None:
-        # print(f"Context set_content: self.content: {self._conf_content}, content: {content}")
         for key, value in content.items():
             self._conf_content[key] = value
             
@@ -63,10 +59,9 @@ class ContextInfo:
                 'endpoint'  : self.url,
                 'user.email': '',
                 'user.token': '',
-                'odl_anonymous': 'i_am_anonymous_from_python_sdk',                
+                'odl_anonymous': UUID,                
             }
             result = init_config_dict
-            # print(f"check_config: {init_config_dict}")
             with open(self.conf_file, 'w') as f:
                 json.dump(init_config_dict, f, indent=4, sort_keys=True, separators=(',', ':'))
         else:
@@ -77,7 +72,6 @@ class ContextInfo:
 
     
     def update_config(self, content: dict) -> None:
-        # print(f"Context update_config: {content}")
         res = self.get_config_content()
         if res:
             self.set_content(content)

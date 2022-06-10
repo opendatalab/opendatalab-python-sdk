@@ -12,7 +12,6 @@ from requests.adapters import HTTPAdapter
 
 class Dataset(object):
     def __init__(self, url: str, token: str = "", odl_cookie: str= "") -> None:
-        # print(f"ds url: {url}, token: {token}")
         host, dataset_name = parse_url(url)
         self.dataset_name = dataset_name
         if token == "":
@@ -36,7 +35,6 @@ class Dataset(object):
 
     def init_oss_bucket(self):
         sts = self.open_data_lab_api.get_dataset_sts(self.dataset_name)
-        # print(f"ds sts: {sts}")
         auth = oss2.StsAuth(
             sts["accessKeyId"], sts["accessKeySecret"], sts["securityToken"]
         )
@@ -44,7 +42,6 @@ class Dataset(object):
         bucket_name = path_info[0]
         self.oss_bucket = oss2.Bucket(auth, self.select_endpoint(sts), bucket_name)
         self.oss_path_prefix = "/".join(path_info[1:])
-        # print(f"test-2-> bucket: {bucket_name}, oss_path_prefix: {self.oss_path_prefix}, oss_bucket: {self.oss_bucket}")
 
     def get_oss_bucket(self) -> oss2.Bucket:
         if self.oss_bucket is None:

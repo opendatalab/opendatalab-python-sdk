@@ -14,10 +14,9 @@ class Config:
     
     @staticmethod
     def _get_config_filepath() -> str:
-        """
-        Get the path of the config file.
-        Returns:
-            The path of the config file.
+        """Get the path of the config file.
+        
+        Returns:  The config file path.
         """
         odl_conf = os.path.join(os.path.expanduser("~"), ".opendatalab", "config.json")
         conf_dir = Path(odl_conf).parent
@@ -25,9 +24,7 @@ class Config:
             conf_dir.mkdir(parents=True)
             
         if not Path(odl_conf).exists():
-            Path(odl_conf).touch(exist_ok=True)
-        
-          
+            Path(odl_conf).touch(exist_ok=True)          
             
         return odl_conf  
             

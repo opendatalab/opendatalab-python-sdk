@@ -7,6 +7,7 @@
 """OpenDataLab python SDK."""
 
 from opendatalab.__version__ import __version__
+from opendatalab.__version__ import __url__
 from opendatalab.client.client import Client
 
-__all__ = ["__version__", "Client"]
+__all__ = ["__url__", "__version__", "Client"]

@@ -5,14 +5,14 @@
 from opendatalab.client.api import OpenDataLabAPI
 from opendatalab.dataset.dataset import Dataset
 from opendatalab.utils import get_api_token_from_env
-
+from opendatalab.__version__ import __url__
 
 class Client:
-    def __init__(self, host: str = "https://opendatalab-ut.shlab.tech", token: str = "", odl_cookie: str = ""):
+    def __init__(self, host: str = __url__, token: str = "", odl_cookie: str = ""):
         """opendatalab client
 
         Args:
-            host str: [prd]: "https://opendatalab.com".[debug]: http://opendatalab-test2.shlab.tech
+            host str: "https://opendatalab.com".
             token str: Defaults to "".
             odl_cookie str: Defaults to "".
         """

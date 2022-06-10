@@ -3,11 +3,10 @@
 # Copyright 2022 Shanghai AI Lab. Licensed under MIT License.
 #
 import json
-from sys import prefix
 import requests
 from pathlib import Path
 from opendatalab.exception import OpenDataLabAuthenticationError, OpenDataLabError
-from opendatalab.utils import bytes2human
+from opendatalab.utils import bytes2human, UUID
 from opendatalab.__version__ import __version__
 
 
@@ -30,15 +29,15 @@ class OpenDataLabAPI(object):
         """
         resp = requests.get(
             f"{self.host}/api/datasets/{dataset}/sts",
-            # headers={"X-OPENDATALAB-API-TOKEN": self.token},
             headers={
                 "X-OPENDATALAB-API-TOKEN": self.token,
                 "Cookie": f"opendatalab_session={self.odl_cookie}",
-                "User-Agent": f"Python SDK ({__version__})",
+                "User-Agent": UUID,
                 },
         )
         if resp.status_code != 200:
             raise OpenDataLabError(resp.status_code, resp.text)
+        
         return resp.json()["data"]
     
     
@@ -53,13 +52,11 @@ class OpenDataLabAPI(object):
             data = data,
             headers={"Content-Type": "application/json"},
         )
-        # print(f"login resp: {resp}")
         if resp.status_code != 200:
             raise OpenDataLabAuthenticationError(resp.status_code, resp.text)
 
         cookies_dict = requests.utils.dict_from_cookiejar(resp.cookies)
         
-        # print(f"cookies_dict: {cookies_dict}")
         if 'opendatalab_session' in cookies_dict.keys():
             opendatalab_session	= cookies_dict['opendatalab_session']
         else:
@@ -76,10 +73,9 @@ class OpenDataLabAPI(object):
     def search_dataset(self, dataset):
         resp = requests.get(
             f"{self.host}/api/datasets/?pageSize=25&keywords={dataset}",
-            # headers={"X-OPENDATALAB-API-TOKEN": self.token},
             headers={"X-OPENDATALAB-API-TOKEN": self.token,
                      "Cookie": f"opendatalab_session={self.odl_cookie}",
-                     "User-Agent": f"Python SDK ({__version__})",
+                     "User-Agent": f"opendatalab-python-sdk/{__version__}",
                      },
             )
         if resp.status_code != 200:
@@ -93,14 +89,14 @@ class OpenDataLabAPI(object):
     def get_info(self, dataset):
         resp = requests.get(
             f"{self.host}/api/datasets/{dataset}",
-            # headers={"X-OPENDATALAB-API-TOKEN": self.token},
             headers={"X-OPENDATALAB-API-TOKEN": self.token,
                      "Cookie": f"opendatalab_session={self.odl_cookie}",
-                     "User-Agent": f"Python SDK ({__version__})",
+                     "User-Agent": f"opendatalab-python-sdk/{__version__}",
                      },
             )
         if resp.status_code != 200:
             raise OpenDataLabError(resp.status_code, resp.text)
+        
         data =  resp.json()["data"]
                         
         return data
@@ -114,10 +110,9 @@ class OpenDataLabAPI(object):
             data = data,
             headers={"Content-Type": "application/json",
                      "Cookie": f"opendatalab_session={self.odl_cookie}",
-                     "User-Agent": f"Python SDK ({__version__})",
+                     "User-Agent": f"opendatalab-python-sdk/{__version__}",
                      },
             )
         
         if resp.status_code != 200:
             raise OpenDataLabError(resp.status_code, resp.text)
-        data =  resp.json()["data"]

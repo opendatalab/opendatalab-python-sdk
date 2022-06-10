@@ -7,13 +7,13 @@
 from functools import partial
 import click
 
-from opendatalab.__version__ import __version__
+from opendatalab.__version__ import __version__, __url__
 from opendatalab.cli.custom import CustomCommand
 from opendatalab.cli.utility import ContextInfo
 
 @click.group(context_settings={"help_option_names": ("-h", "--help")})
 @click.version_option(__version__)
-@click.option("-u", "--url", type=str, default="https://opendatalab-ut.shlab.tech", help="The login url.", hidden=True) 
+@click.option("-u", "--url", type=str, default=__url__, help="The login url.", hidden=True) 
 @click.option("-t", "--token", type=str, default="", help="OpenDatalab user api token", hidden=True, envvar="OPENDATALAB-API-TOKEN",)
 @click.pass_context
 def cli(ctx: click.Context, url: str, token: str) -> None:

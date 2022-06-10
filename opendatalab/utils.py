@@ -3,7 +3,11 @@
 # Copyright 2022 Shanghai AI Lab. Licensed under MIT License.
 #
 import os
+import uuid
 from urllib.parse import urlparse
+from opendatalab.__version__ import __url__, __version__
+
+UUID = str(uuid.uuid3(uuid.NAMESPACE_URL, f"opendatalab-python-sdk/{__version__}")).replace("-", "")
 
 
 def parse_url(url: str):
