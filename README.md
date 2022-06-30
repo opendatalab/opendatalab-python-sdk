@@ -17,14 +17,13 @@ OpenDataLab Python SDK is a python library to access [Opendatalab](https://opend
 and use open datasets.  
 It provides:
 
--   A pythonic way to access opendatalab resources by OpenDataHub OpenAPI.
+-   A pythonic way to access opendatalab resources.
 -   An convient CLI tool `opendatalab` to access open datasets.
--   Rich information about the open datasets.
 
 ## Installation
 
 ```console
-pip3 install opendatalab
+$ pip3 install opendatalab
 ```
 
 ## Usage:
@@ -33,7 +32,7 @@ An **account** is needed to access to opendatalab service.
 Please visit [offical websit](https://opendatalab.com/register) to get the account username and password first.
 
 ### Help
-show cmd help
+Show cmd help
 ```cmd
 $ opendatalab -h
 $ opendatalab --help
@@ -56,31 +55,27 @@ Commands:
   version  Show opendatalab version.
 ```
 
-### Show Version
+### Version
 ```cmd
 $ opendatalab version
-opendatalab, 0.0.1b68
+opendatalab, 0.0.1b70
 ```
 
 ### Login
-login with opendatalab username and password 
+Login with opendatalab username and password. If you haven't an opendatalab account，please register with link: https://opendatalab.com/
+
 ```cmd
-$ opendatalab login 
-$ Username: aaa@email.com 
-$ Password:
-
-Login as aaa@email.com
-
+$ opendatalab login
+Username []: wangrui@pjlab.org.cn
+Password []: 
+Login Successful as wangrui@pjlab.org.cn
+or
 $ opendatalab login -u aaa@email.com 
-$ Password:
-
-Login as aaa@email.com
-
+Password[]:
 ```
 
-
 ### Logout
-logout current opendatalab account 
+Logout current opendatalab account 
 ```cmd
 $ opendatalab logout
 Do you want to logout? [y/N]: y
@@ -88,8 +83,8 @@ aaa@email.com Logged Out
 ```
 
 
-### ls 
-list dataset files, support prefix of sub_directory
+### List Dataset Files
+List dataset files, support prefix of sub_directory
 ```cmd
 # list all dataset files 
 $ opendatalab ls  MNIST
@@ -109,25 +104,90 @@ t10k-labels-idx1-ubyte.gz                                                       
 t10k-images-idx3-ubyte.gz
 ```
 
-### info
-show dataset info
+```python
+import json
+from opendatalab.cli.ls import _implement_ls
+from opendatalab.cli.utility import ContextInfo
+from opendatalab.__version__ import __url__
+
+if __name__ == '__main__':
+    """
+    ContextInfo: default
+        please use shell login first, use: opendatalab login
+    """
+    ctx = ContextInfo(__url__, "")
+    client = ctx.get_client()
+    odl_api = client.get_api()
+
+    
+    # list demo
+    _implement_ls(ctx, 'MNIST')
+    print(f'*****'*5) 
+    
+    """运行结果
+    total: 4, size: 11.1M
+    FILE                                                                                                    SIZE                
+    train-labels-idx1-ubyte.gz                                                                              28.2K               
+    train-images-idx3-ubyte.gz                                                                              9.5M                
+    t10k-labels-idx1-ubyte.gz                                                                               4.4K                
+    t10k-images-idx3-ubyte.gz                                                                               1.6M                  
+    *************************
+    """
+```
+
+### Show Dataset Info
 ```cmd
 $ opendatalab info MNIST
 ========================================
 Id                            8
 Name                          MNIST
-Filebytes                     50.8M
-Filecount                     70003
+FileBytes                     50.8M
+FileCount                     70003
 Introduction                  The MNIST database of handwritten digits, available from this page, has a training set of 60,000 ...
-Publishdate                   1998
+PublishDate                   1998
 Licenses
 Publisher                     National Institute of Standards and Technology
-Labelfiletypes                JSON
-Mediatypes                    Image
-Labeltypes                    Classification
+LabelFileTypes                JSON
+MediaTypes                    Image
+LabelTypes                    Classification
+```
+```python
+from opendatalab.cli.info import _implement_info
+from opendatalab.cli.utility import ContextInfo
+from opendatalab.__version__ import __url__
+
+if __name__ == '__main__':
+    """
+    ContextInfo: default
+        please use shell login first, use: opendatalab login
+    """
+    ctx = ContextInfo(__url__, "")
+    client = ctx.get_client()
+    odl_api = client.get_api()
+
+    
+    # get dataset info
+    _implement_info(ctx, 'MNIST')
+    print(f'*****'*5)
+    
+    """运行结果
+    ========================================
+    Id                            8                                                                                                   
+    Name                          MNIST                                                                                               
+    Filebytes                     50.8M                                                                                               
+    Filecount                     70003                                                                                               
+    Introduction                  The MNIST database of handwritten digits, available from this page, has a training set of 60,000 ...
+    Publishdate                   1998                                                                                                
+    Licenses                                                                                                                          
+    Publisher                     National Institute of Standards and Technology                                                      
+    Labelfiletypes                BIN                                                                                                 
+    Mediatypes                    Image                                                                                               
+    Labeltypes                    Classification                                                                                       
+    *************************
+    """
 ```
 
-### search
+### Search Dataset With Keywords
 search dataset by keywords
 ```cmd
 $ opendatalab search MNIST
@@ -137,11 +197,39 @@ Index     Name                          FileSize  Description                   
 2         Fashion-MNIST                 52.4M     Fashion-MNIST is a dataset of Zalando's article images—consisting of a training set of 60,000 exa...	1
 
 ```
+```python
+import json
+from opendatalab.cli.utility import ContextInfo
+from opendatalab.__version__ import __url__
 
-### get
-get dataset files into local path
+if __name__ == '__main__':
+    """
+    ContextInfo: default
+        please use shell login first, use: opendatalab login
+    """
+    ctx = ContextInfo(__url__, "")
+    client = ctx.get_client()
+    odl_api = client.get_api()
+
+    # search demo    
+    res_list = odl_api.search_dataset("MNIST")
+    for index, res in enumerate(res_list):
+        print(f"-->index: {index}, result: {res['name']}")
+    print(f'*****'*5)   
+    
+    """运行结果
+    -->index: 0, result: MNIST
+    -->index: 1, result: Moving_MNIST
+    -->index: 2, result: Fashion-MNIST
+    *************************
+    """
+```
+
+### Download Dataset Files Into Local
+Please change your local path, then run below command.
 ```cmd
 $ opendatalab get MNIST/t10k
+
 local dir: ~/MNIST
 Scan done, total files: 2, total size: 1.65M
 Start downloading file: ~/t10k-images-idx3-ubyte.gz ...
@@ -149,8 +237,77 @@ Start downloading file: ~/MNIST/t10k-labels-idx1-ubyte.gz ...
 100%|██
 
 ```
+```python
+import json
+from opendatalab.cli.get import _implement_get
+from opendatalab.cli.utility import ContextInfo
+from opendatalab.__version__ import __url__
+if __name__ == '__main__':
+    ctx = ContextInfo(__url__, "")
+    client = ctx.get_client()
+    odl_api = client.get_api()
 
+    # download files demo
+    # Reminder: run this snippet at local path which you want to save.
+    _implement_get(ctx, 'MNIST', 4 , 0, True)
+    print(f'*****'*5)
+    '''运行结果
+    local dir: /Users/wangrui/work/codes/opendatalab/opendatalab-python-sdk/MNIST
+    Scan done, total files: 4, total size: 11.6M
+    0%|                                                                                                  | 0.00/11.6M [00:00<?, ?B/s]
+    Start downloading file: /Users/wangrui/work/codes/opendatalab/opendatalab-python-sdk/MNIST/t10k-images-idx3-ubyte.gz ...
+    Start downloading file: /Users/wangrui/work/codes/opendatalab/opendatalab-python-sdk/MNIST/t10k-labels-idx1-ubyte.gz ...
+    Start downloading file: /Users/wangrui/work/codes/opendatalab/opendatalab-python-sdk/MNIST/train-images-idx3-ubyte.gz ...
+    Start downloading file: /Users/wangrui/work/codes/opendatalab/opendatalab-python-sdk/MNIST/train-labels-idx1-ubyte.gz ...
+    100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 11.6M/11.6M [00:04<00:00, 2.65MB/s]
+    '''
+```
+
+## Python Develop Sample
+```python
+import json
+from opendatalab.cli.ls import _implement_ls
+from opendatalab.cli.get import _implement_get
+from opendatalab.cli.info import _implement_info
+from opendatalab.cli.utility import ContextInfo
+from opendatalab.__version__ import __url__
+
+if __name__ == '__main__':
+    """
+    ContextInfo: default
+        please use shell login first, use: opendatalab login
+    """
+    ctx = ContextInfo(__url__, "")
+    client = ctx.get_client()
+    odl_api = client.get_api()
+
+    # 1.search demo    
+    res_list = odl_api.search_dataset("MNIST")
+    for index, res in enumerate(res_list):
+        print(f"-->index: {index}, result: {res['name']}")
+    print(f'*****'*5)   
+    
+    # 2.list demo
+    _implement_ls(ctx, 'MNIST')
+    print(f'*****'*5)   
+    
+    # 3.get dataset info
+    _implement_info(ctx, 'MNIST')
+    print(f'*****'*5)
+    
+    # 4.read file demo 
+    dataset = client.get_dataset('MNIST') 
+    with dataset.get('data_info/info.json', compressed=False) as fd:
+        content = json.load(fd)
+        print(f"{content}")    
+    print(f'*****'*5)
+
+    # 5.download files demo
+    #参数：context, 数据集名称， 线程数，下载限速，是否为下载文件
+    _implement_get(ctx, 'MNIST', 4 , 0, True)
+    print(f'*****'*5)
+    
+```
 
 ## Documentation
-
 More information can be found on the [documentation site](https://opendatalab.com/docs)

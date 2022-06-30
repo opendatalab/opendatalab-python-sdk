@@ -22,8 +22,8 @@ class Dataset(object):
         self.oss_path_prefix = ""
         self.init_oss_bucket()
 
-    def get(self, filepath: str):
-        object_key = self.get_object_key_prefix() + filepath
+    def get(self, filepath: str, compressed:bool = True):
+        object_key = self.get_object_key_prefix(compressed) + filepath
         try:
             return self.oss_bucket.get_object(object_key)
         except oss2.exceptions.ServerError as e:
@@ -48,8 +48,11 @@ class Dataset(object):
             self.init_oss_bucket()
         return self.oss_bucket
 
-    def get_object_key_prefix(self) -> str:
-        return f"{self.oss_path_prefix}/source_compressed/"
+    def get_object_key_prefix(self, compressed: bool=True) -> str:
+        if compressed:
+            return f"{self.oss_path_prefix}/source_compressed/"
+        else:
+            return f"{self.oss_path_prefix}/"
 
     @classmethod
     def select_endpoint(cls, sts):

@@ -6,4 +6,4 @@
 """OpenDataLab python SDK version info."""
 
 __url__ = "https://opendatalab.com"
-__version__ = "0.0.1b68"
+__version__ = "0.0.1b70"

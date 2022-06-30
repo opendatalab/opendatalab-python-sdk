@@ -64,7 +64,7 @@ def get_oss_traffic_limit(limit_speed):
     return limit_speed
 
 @exception_handler
-def _implement_get(obj: ContextInfo, name: str, thread: int , limit_speed: int) -> None:
+def _implement_get(obj: ContextInfo, name: str, thread: int , limit_speed: int, compressed: bool=True) -> None:
     ds_split = name.split("/")
     if len(ds_split) > 1:
         dataset_name = ds_split[0]
@@ -76,7 +76,7 @@ def _implement_get(obj: ContextInfo, name: str, thread: int , limit_speed: int) 
     client = obj.get_client()
     dataset = client.get_dataset(dataset_name)
     bucket = dataset.get_oss_bucket()
-    prefix = dataset.get_object_key_prefix()
+    prefix = dataset.get_object_key_prefix(compressed)
     local_dir = Path.cwd().joinpath(dataset_name)
     if not Path(local_dir).exists():
         Path(local_dir).mkdir(parents=True)

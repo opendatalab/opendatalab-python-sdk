@@ -21,7 +21,7 @@ def _implement_ls(obj: ContextInfo, dataset: str) -> None:
         sub_dir = ""
     dataset_instance = client.get_dataset(dataset_name=dataset_name)
     bucket = dataset_instance.get_oss_bucket()
-    prefix = dataset_instance.get_object_key_prefix()
+    prefix = dataset_instance.get_object_key_prefix(compressed=True)
     
     object_info_dict = {}
     total_files, total_size = 0, 0
