@@ -4,8 +4,7 @@
 #
 import json
 import requests
-from pathlib import Path
-from opendatalab.exception import OpenDataLabAuthenticationError, OpenDataLabError
+from opendatalab.exception import *
 from opendatalab.utils import bytes2human, UUID
 from opendatalab.__version__ import __version__
 
@@ -53,7 +52,7 @@ class OpenDataLabAPI(object):
             headers={"Content-Type": "application/json"},
         )
         if resp.status_code != 200:
-            raise OpenDataLabAuthenticationError(resp.status_code, resp.text)
+            raise OpenDataLabAuthError(resp.status_code, resp.text)
 
         cookies_dict = requests.utils.dict_from_cookiejar(resp.cookies)
         
@@ -70,9 +69,9 @@ class OpenDataLabAPI(object):
         return config_json
                     
     
-    def search_dataset(self, dataset):
+    def search_dataset(self, keywords):
         resp = requests.get(
-            f"{self.host}/api/datasets/?pageSize=25&keywords={dataset}",
+            f"{self.host}/api/datasets/?pageSize=25&keywords={keywords}",
             headers={"X-OPENDATALAB-API-TOKEN": self.token,
                      "Cookie": f"opendatalab_session={self.odl_cookie}",
                      "User-Agent": f"opendatalab-python-sdk/{__version__}",
@@ -85,6 +84,20 @@ class OpenDataLabAPI(object):
         
         return result_list
 
+    def get_similar_dataset(self, dataset):
+        dataset_id = int(self.get_info(dataset)['id'])
+        resp = requests.get(
+            f"{self.host}/api/datasets/{dataset_id}/similar",
+            headers={"X-OPENDATALAB-API-TOKEN": self.token,
+                     "Cookie": f"opendatalab_session={self.odl_cookie}",
+                     "User-Agent": f"opendatalab-python-sdk/{__version__}",
+                     },
+            )
+        if resp.status_code != 200:
+            raise OpenDataLabError(resp.status_code, resp.text)
+        
+        data = resp.json()['data']
+        return data
     
     def get_info(self, dataset):
         resp = requests.get(
@@ -106,7 +119,7 @@ class OpenDataLabAPI(object):
         data = json.dumps(download_info)
 
         resp = requests.post(
-            f"{self.host}/api/datasets/{dataset_id}/download/log",
+            f"{self.host}/api/track/datasets/download/{dataset_id}",
             data = data,
             headers={"Content-Type": "application/json",
                      "Cookie": f"opendatalab_session={self.odl_cookie}",

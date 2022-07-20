@@ -4,7 +4,6 @@
 #
 from typing import Optional, TYPE_CHECKING, Union
 
-
 class OpenDataLabError(Exception):
     """
     This is the base class for OpenDataLab custom exceptions.
@@ -22,6 +21,7 @@ class OpenDataLabError(Exception):
         self.response_code = response_code
         self.error_message = error_message
 
+
     def __str__(self) -> str:
         if self.response_code is not None:
             return f"{self.response_code}: {self.error_message}"
@@ -29,16 +29,27 @@ class OpenDataLabError(Exception):
             return f"{self.error_message}"
 
 
-class OpenDataLabAuthenticationError(OpenDataLabError):
+class OpenDataLabAuthError(OpenDataLabError):
     def __init__(self, response_code: Optional[int] = None, error_message: str = "") -> None:
         super().__init__(response_code, error_message)
 
 
-class OpenDataLabDeprecateError(OpenDataLabError):
+
+
+class OdlDatasetAccessDeniedError(OpenDataLabError):
+    def __init__(self, response_code: Optional[int] = None, error_message: str = "") -> None:
+        super().__init__(response_code, error_message)
+
     pass
 
-class OpenDataLabRNError(OpenDataLabError):
+class OdlDatasetNotExistsError(OpenDataLabError):
+    def __init__(self, response_code: Optional[int] = None, error_message: str = "") -> None:
+        super().__init__(response_code, error_message)
+        
     pass
 
-class OpenDataLabInternalError(OpenDataLabError):
+class OdlRequestNeedToken(OpenDataLabError):
+    def __init__(self, response_code: Optional[int] = None, error_message: str = "") -> None:
+        super().__init__(response_code, error_message)
+        
     pass

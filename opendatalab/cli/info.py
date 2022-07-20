@@ -5,6 +5,7 @@
 #
 from opendatalab.cli.utility import ContextInfo, exception_handler
 from opendatalab.utils import bytes2human
+import click
 
 
 @exception_handler
@@ -12,53 +13,75 @@ def _implement_info(obj: ContextInfo, dataset: str) -> None:
     
     client = obj.get_client()
     odl_api = client.get_api()
-    data = odl_api.get_info(dataset)
+    info_data = odl_api.get_info(dataset)
+    similar_data_list = odl_api.get_similar_dataset(dataset)
 
-    license_list = data['licenses']
+    data_introd = info_data['introduction']
+    introduction_str = ""
+    if data_introd and len(data_introd) > 0:
+        introduction_str = data_introd[:97] + '...'
+
+    license_list = info_data['licenses']
     license_str = ""
     if license_list and len(license_list) > 0:
         license_str = ", ".join([x['name'] for x in license_list])
         
-    publisher_list = data['publisher']
+    publisher_list = info_data['publisher']
     publisher_str = ""
     if publisher_list and len(publisher_list) > 0:
         publisher_str = ", ".join([x['name'] for x in publisher_list])
         
-    labelFileTypes_list = data['labelFileTypes']
-    labelFileTypes_str = ""
-    if labelFileTypes_list and len(labelFileTypes_list) > 0:
-        labelFileTypes_str = ", ".join([x['name'] for x in labelFileTypes_list])
-        
-    mediaTypes_list = data['mediaTypes']
+    mediaTypes_list = info_data['mediaTypes']
     mediaTypes_str = ""
     if mediaTypes_list and len(mediaTypes_list) > 0:
         mediaTypes_str = ", ".join([x['name'] for x in mediaTypes_list])
 
-    labelTypes_list = data['labelTypes']
+    labelTypes_list = info_data['labelTypes']
     labelTypes_str = ""
     if labelTypes_list and len(labelTypes_list) > 0:
         labelTypes_str = ", ".join([x['name'] for x in labelTypes_list])
         
-    data_introd = data['introduction']
-    introduction_str = ""
-    if data_introd and len(data_introd) > 0:
-        introduction_str = data_introd[:97] + '...'
+    taskTypes_list = info_data['taskTypes']
+    taskTypes_str = ""
+    if labelTypes_list and len(taskTypes_list) > 0:
+        taskTypes_str = ", ".join([x['name'] for x in taskTypes_list])
+
+    tags_list = info_data['tags']
+    tags_str = ""
+    if tags_list and len(tags_list) > 0:
+        tags_str = ", ".join([x['name'] for x in tags_list])
+
+
+    citation_data = info_data['citation']
+    citation_str = ""
+    if citation_data and len(citation_data) > 0:
+        citation_str = citation_data.replace('\r','').replace('\n','')
+
+
+    simliar_ds_str = ""
+    if similar_data_list and len(similar_data_list) > 0:
+        simliar_ds_str = ", ".join([x['name'] for x in similar_data_list])
                  
     info_data = {
-        'id': data['id'],
-        'name': data['name'],
-        'fileBytes': bytes2human(data['fileBytes']),
-        'fileCount': data['fileCount'],
-        'introduction': introduction_str,
-        'publishDate': data['publishDate'],
-        'licenses': license_str,
-        'publisher': publisher_str,
-        'labelFileTypes': labelFileTypes_str,
-        'mediaTypes': mediaTypes_str,
-        'labelTypes': labelTypes_str,            
+        'Name': info_data['name'],
+        'File Bytes': bytes2human(info_data['fileBytes']),
+        'File Count': info_data['fileCount'],
+        'Introduction': introduction_str,
+        'Issue Time': info_data['publishDate'],
+        'License': license_str,
+        'Author': publisher_str,
+        'Data Type': mediaTypes_str,
+        'Label Type': labelTypes_str,   
+        'Task Type' : taskTypes_str,
+        'Tags' : tags_str,
+        'HomePage' : info_data['pulishUrl'],
+        'Citation' : citation_str,
+        'Similar Datasets': simliar_ds_str,         
     }
     
     print("====="*8)
-    for key, val in info_data.items():
+    for key in sorted(info_data.keys()):
+        val = info_data[key]
         val = "" if not val else val
-        print('{:<30}{:<100}'.format(key.capitalize(), val))
+        click.echo('{:<30}{:<100}'.format(key, val))
+        # print('{:<30}{:<100}'.format(key, val))

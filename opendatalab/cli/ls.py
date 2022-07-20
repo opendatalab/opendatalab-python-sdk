@@ -41,6 +41,6 @@ def _implement_ls(obj: ContextInfo, dataset: str) -> None:
             
     sorted_object_info_dict = dict(sorted(object_info_dict.items(), key=lambda x: x[0], reverse=True))
     print(f"total: {total_files}, size: {bytes2human(total_size)}")
-    print('{:<100}\t{:<20}'.format('FILE', 'SIZE'))
+    print('{:<100}\t{:<20}'.format('File Name', 'Size'))
     for key, val in sorted_object_info_dict.items():
         print('{:<100}\t{:<20}'.format(key, val))

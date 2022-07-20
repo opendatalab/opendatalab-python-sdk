@@ -7,7 +7,7 @@
 from functools import partial
 import click
 
-from opendatalab.__version__ import __version__, __url__
+from opendatalab.__version__ import __version__, __url__, __released_date__
 from opendatalab.cli.custom import CustomCommand
 from opendatalab.cli.utility import ContextInfo
 
@@ -38,8 +38,20 @@ command = partial(cli.command, cls=CustomCommand)
 def version():
     """Show opendatalab version.
     """
-    click.echo(f"opendatalab, {__version__}")
+    click.echo(f"opendatalab: {__version__}, released: {__released_date__}")
     
+
+@command(
+    synopsis=(
+        "$ opendatalab upgrade      # check opendatalab version upgrade.",
+    )
+)
+def upgrade():
+    """upgrade opendatalab version.
+    """
+    ## need api to check lastest version
+    click.echo(f"check version, opendatalab: {__version__}, latest version: {__released_date__}")
+
 
 @command(
     synopsis=(
