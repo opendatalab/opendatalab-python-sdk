@@ -9,51 +9,13 @@ import json
 from functools import wraps
 from typing import Any, Callable, TypeVar
 import click
-from colorama import init, Fore, Back, Style
-init(autoreset=True)
 
 from opendatalab.cli.config import config as client_config
 from opendatalab.client.client import Client
 from opendatalab.utils import UUID
-from opendatalab.exception import OpenDataLabError, OpenDataLabInternalError
+from opendatalab.exception import OpenDataLabError
 
 _Callable = TypeVar("_Callable", bound=Callable[..., None])
-
-
-
-class Colored:
-    def red(self, s):
-        return Fore.RED + s + Fore.RESET
-
-    def green(self, s):
-        return Fore.GREEN + s + Fore.RESET
-    
-    def yellow(self, s):
-        return Fore.YELLOW + s + Fore.RESET
-
-    def blue(self, s):
-        return Fore.BLUE + s + Fore.RESET
-    
-    def magenta(self, s):
-        return Fore.MAGENTA + s + Fore.RESET
-    
-    def cyan(self, s):
-        return Fore.CYAN + s + Fore.RESET
-
-    def white(self, s):
-        return Fore.WHITE + s + Fore.RESET
-
-    def black(self, s):
-        return Fore.BLACK
-    
-    def white_green(self, s):
-        return Fore.WHITE + Back.GREEN + s
-
-    def dave(self, s):
-        return Style.BRIGHT + Fore.GREEN + s
-
-
-color = Colored()
 
 
 class ContextInfo:
@@ -166,9 +128,6 @@ def exception_handler(func: _Callable) -> _Callable:
     def wrapper(*args: Any, **kwargs: Any) -> None:
         try:
             func(*args, **kwargs)
-        except OpenDataLabInternalError as err:
-            print(err)
-            raise
         except OpenDataLabError as err:
             error(str(err))
 

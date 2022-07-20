@@ -8,5 +8,5 @@ from datetime import date
 """OpenDataLab python SDK version info."""
 
 __url__ = "https://opendatalab.com"
-__version__ = "0.0.1b71"
+__version__ = "0.0.1b76"
 __released_date__ = date.today()

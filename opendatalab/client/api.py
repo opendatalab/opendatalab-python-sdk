@@ -52,7 +52,7 @@ class OpenDataLabAPI(object):
             headers={"Content-Type": "application/json"},
         )
         if resp.status_code != 200:
-            raise OpenDataLabAuthError(resp.status_code, resp.text)
+            raise OdlAuthError(resp.status_code, resp.text)
 
         cookies_dict = requests.utils.dict_from_cookiejar(resp.cookies)
         

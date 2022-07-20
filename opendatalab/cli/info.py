@@ -6,7 +6,9 @@
 from opendatalab.cli.utility import ContextInfo, exception_handler
 from opendatalab.utils import bytes2human
 import click
-
+from rich import print
+from rich.console import Console
+from rich.table import Table
 
 @exception_handler
 def _implement_info(obj: ContextInfo, dataset: str) -> None:
@@ -55,7 +57,7 @@ def _implement_info(obj: ContextInfo, dataset: str) -> None:
     citation_data = info_data['citation']
     citation_str = ""
     if citation_data and len(citation_data) > 0:
-        citation_str = citation_data.replace('\r','').replace('\n','')
+        citation_str = citation_data.strip("```").replace('\r','').replace('\n','')
 
 
     simliar_ds_str = ""
@@ -64,8 +66,8 @@ def _implement_info(obj: ContextInfo, dataset: str) -> None:
                  
     info_data = {
         'Name': info_data['name'],
-        'File Bytes': bytes2human(info_data['fileBytes']),
-        'File Count': info_data['fileCount'],
+        'File Bytes': str(bytes2human(info_data['fileBytes'])),
+        'File Count': str(info_data['fileCount']),
         'Introduction': introduction_str,
         'Issue Time': info_data['publishDate'],
         'License': license_str,
@@ -74,14 +76,21 @@ def _implement_info(obj: ContextInfo, dataset: str) -> None:
         'Label Type': labelTypes_str,   
         'Task Type' : taskTypes_str,
         'Tags' : tags_str,
-        'HomePage' : info_data['pulishUrl'],
+        'HomePage' : info_data['publishUrl'],
         'Citation' : citation_str,
         'Similar Datasets': simliar_ds_str,         
     }
     
-    print("====="*8)
+    console = Console()
+    table = Table(show_header=True, header_style='bold cyan')
+    table.add_column("Field", style="dim", justify='left')
+    table.add_column("Content", justify='full')
+    
     for key in sorted(info_data.keys()):
         val = info_data[key]
         val = "" if not val else val
-        click.echo('{:<30}{:<100}'.format(key, val))
+        table.add_row(key, val)
+        # click.echo('{:<30}{:<100}'.format(key, val))
         # print('{:<30}{:<100}'.format(key, val))
+    
+    console.print(table)

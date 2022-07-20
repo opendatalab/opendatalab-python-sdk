@@ -29,12 +29,9 @@ class OpenDataLabError(Exception):
             return f"{self.error_message}"
 
 
-class OpenDataLabAuthError(OpenDataLabError):
+class OdlAuthError(OpenDataLabError):
     def __init__(self, response_code: Optional[int] = None, error_message: str = "") -> None:
         super().__init__(response_code, error_message)
-
-
-
 
 class OdlDatasetAccessDeniedError(OpenDataLabError):
     def __init__(self, response_code: Optional[int] = None, error_message: str = "") -> None:
