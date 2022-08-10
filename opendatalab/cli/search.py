@@ -56,7 +56,7 @@ def _implement_search(obj: ContextInfo, keywords: str) -> None:
             ds_name = res['name']
             ds_name_rich = rich_content_str(keywords=keywords, content=ds_name)
 
-            ds_desc = res['introductionText']
+            ds_desc = res['introductionText'][:98] + '...'
             ds_desc_rich = rich_content_str(keywords=keywords, content=ds_desc)
 
             ds_dw_cnt = res['downloadCount']

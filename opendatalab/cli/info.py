@@ -84,9 +84,9 @@ def _implement_info(obj: ContextInfo, dataset: str) -> None:
     console = Console()
     table = Table(show_header=True, header_style='bold cyan')
     table.add_column("Field", style="dim", justify='left')
-    table.add_column("Content", justify='full')
+    table.add_column("Content", width=120, justify='full')
     
-    for key in sorted(info_data.keys()):
+    for key in info_data.keys():
         val = info_data[key]
         val = "" if not val else val
         table.add_row(key, val)

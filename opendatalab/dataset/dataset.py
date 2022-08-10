@@ -8,9 +8,9 @@ import requests
 from opendatalab.client.api import OpenDataLabAPI
 from opendatalab.utils import parse_url, get_api_token_from_env
 from requests.adapters import HTTPAdapter
+from  abc import ABC
 
-
-class Dataset(object):
+class Dataset:
     def __init__(self, url: str, token: str = "", odl_cookie: str= "") -> None:
         host, dataset_name = parse_url(url)
         self.dataset_name = dataset_name
@@ -50,7 +50,7 @@ class Dataset(object):
 
     def get_object_key_prefix(self, compressed: bool=True) -> str:
         if compressed:
-            return f"{self.oss_path_prefix}/source_compressed/"
+            return f"{self.oss_path_prefix}/raw/"
         else:
             return f"{self.oss_path_prefix}/"
 
