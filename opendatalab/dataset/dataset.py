@@ -2,16 +2,19 @@
 #
 # Copyright 2022 Shanghai AI Lab. Licensed under MIT License.
 #
+import http
 import oss2
 import requests
 
 from opendatalab.client.api import OpenDataLabAPI
 from opendatalab.utils import parse_url, get_api_token_from_env
 from requests.adapters import HTTPAdapter
-from  abc import ABC
+from requests.exceptions import ConnectionError
+from opendatalab.exception import OpenDataLabError
+
 
 class Dataset:
-    def __init__(self, url: str, token: str = "", odl_cookie: str= "") -> None:
+    def __init__(self, url: str, token: str = "", odl_cookie: str = "") -> None:
         host, dataset_name = parse_url(url)
         self.dataset_name = dataset_name
         if token == "":
@@ -22,7 +25,7 @@ class Dataset:
         self.oss_path_prefix = ""
         self.init_oss_bucket()
 
-    def get(self, filepath: str, compressed:bool = True):
+    def get(self, filepath: str, compressed: bool = True):
         object_key = self.get_object_key_prefix(compressed) + filepath
         try:
             return self.oss_bucket.get_object(object_key)
@@ -33,22 +36,29 @@ class Dataset:
             self.init_oss_bucket()
             return self.oss_bucket.get_object(object_key)
 
-    def init_oss_bucket(self):
-        sts = self.open_data_lab_api.get_dataset_sts(self.dataset_name)
-        auth = oss2.StsAuth(
-            sts["accessKeyId"], sts["accessKeySecret"], sts["securityToken"]
-        )
-        path_info = sts["path"].replace("oss://", "").split("/")
-        bucket_name = path_info[0]
-        self.oss_bucket = oss2.Bucket(auth, self.select_endpoint(sts), bucket_name)
-        self.oss_path_prefix = "/".join(path_info[1:])
+    def init_oss_bucket(self, expires=900):
+        sts = self.open_data_lab_api.get_dataset_sts(self.dataset_name, expires=expires)
+        sts_point, sts_use_cname = self.select_endpoint(sts)
+
+        if sts_point:
+            auth = oss2.StsAuth(sts["accessKeyId"], sts["accessKeySecret"], sts["securityToken"])
+            path_info = sts["path"].replace("oss://", "").split("/")
+            bucket_name = path_info[0]
+            self.oss_bucket = oss2.Bucket(auth, sts_point, bucket_name, is_cname=sts_use_cname)
+            self.oss_path_prefix = "/".join(path_info[1:])
+        else:
+            raise OpenDataLabError(1001, "access to bucket error")
 
     def get_oss_bucket(self) -> oss2.Bucket:
         if self.oss_bucket is None:
-            self.init_oss_bucket()
+            self.init_oss_bucket(expires=900)
         return self.oss_bucket
 
-    def get_object_key_prefix(self, compressed: bool=True) -> str:
+    def refresh_oss_bucket(self) -> oss2.Bucket:
+        self.init_oss_bucket()
+        return self.oss_bucket
+
+    def get_object_key_prefix(self, compressed: bool = True) -> str:
         if compressed:
             return f"{self.oss_path_prefix}/raw/"
         else:
@@ -56,13 +66,17 @@ class Dataset:
 
     @classmethod
     def select_endpoint(cls, sts):
-        try:
-            s = requests.Session()
-            sts_endpoint = sts["endpoint"]["vpc"]
-            s.mount(sts_endpoint, HTTPAdapter(max_retries=0))
-            s.get(sts_endpoint, timeout=(0.5, 1))
-        
-        except Exception as e:
-            sts_endpoint = sts["endpoint"]["internet"]
-        
-        return sts_endpoint
+        s = requests.Session()
+        sts_endpoints = sts["endpoints"]
+        for _, endpoint in enumerate(sts_endpoints):
+            sts_endpoint = endpoint['url']
+            sts_use_cname = endpoint['useCname']
+            check_url = str(sts_endpoint).rstrip("/") + "/check_connected"
+            s.mount(check_url, HTTPAdapter(max_retries=0))
+            try:
+                resp = s.get(check_url, timeout=(0.5, 1))
+                if resp.status_code == http.HTTPStatus.OK:
+                    return sts_endpoint, sts_use_cname
+            except:
+                pass
+        raise ConnectionError("Exceptions occurs, Please check your network...")

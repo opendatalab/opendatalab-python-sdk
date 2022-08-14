@@ -3,16 +3,15 @@
 #
 # Copyright 2022 Shanghai AI Lab. Licensed under MIT License.
 #
-from opendatalab.cli.utility import ContextInfo, exception_handler
-from opendatalab.utils import bytes2human
-import click
-from rich import print
 from rich.console import Console
 from rich.table import Table
 
+from opendatalab.cli.utility import ContextInfo, exception_handler
+from opendatalab.utils import bytes2human
+
+
 @exception_handler
 def _implement_info(obj: ContextInfo, dataset: str) -> None:
-    
     client = obj.get_client()
     odl_api = client.get_api()
     info_data = odl_api.get_info(dataset)
@@ -27,12 +26,12 @@ def _implement_info(obj: ContextInfo, dataset: str) -> None:
     license_str = ""
     if license_list and len(license_list) > 0:
         license_str = ", ".join([x['name'] for x in license_list])
-        
+
     publisher_list = info_data['publisher']
     publisher_str = ""
     if publisher_list and len(publisher_list) > 0:
         publisher_str = ", ".join([x['name'] for x in publisher_list])
-        
+
     mediaTypes_list = info_data['mediaTypes']
     mediaTypes_str = ""
     if mediaTypes_list and len(mediaTypes_list) > 0:
@@ -42,7 +41,7 @@ def _implement_info(obj: ContextInfo, dataset: str) -> None:
     labelTypes_str = ""
     if labelTypes_list and len(labelTypes_list) > 0:
         labelTypes_str = ", ".join([x['name'] for x in labelTypes_list])
-        
+
     taskTypes_list = info_data['taskTypes']
     taskTypes_str = ""
     if labelTypes_list and len(taskTypes_list) > 0:
@@ -53,17 +52,15 @@ def _implement_info(obj: ContextInfo, dataset: str) -> None:
     if tags_list and len(tags_list) > 0:
         tags_str = ", ".join([x['name'] for x in tags_list])
 
-
     citation_data = info_data['citation']
     citation_str = ""
     if citation_data and len(citation_data) > 0:
-        citation_str = citation_data.strip("```").replace('\r','').replace('\n','')
-
+        citation_str = citation_data.strip("```").replace('\r', '').replace('\n', '')
 
     simliar_ds_str = ""
     if similar_data_list and len(similar_data_list) > 0:
         simliar_ds_str = ", ".join([x['name'] for x in similar_data_list])
-                 
+
     info_data = {
         'Name': info_data['name'],
         'File Bytes': str(bytes2human(info_data['fileBytes'])),
@@ -73,24 +70,24 @@ def _implement_info(obj: ContextInfo, dataset: str) -> None:
         'License': license_str,
         'Author': publisher_str,
         'Data Type': mediaTypes_str,
-        'Label Type': labelTypes_str,   
-        'Task Type' : taskTypes_str,
-        'Tags' : tags_str,
-        'HomePage' : info_data['publishUrl'],
-        'Citation' : citation_str,
-        'Similar Datasets': simliar_ds_str,         
+        'Label Type': labelTypes_str,
+        'Task Type': taskTypes_str,
+        'Tags': tags_str,
+        'HomePage': info_data['publishUrl'],
+        'Citation': citation_str,
+        'Similar Datasets': simliar_ds_str,
     }
-    
+
     console = Console()
     table = Table(show_header=True, header_style='bold cyan')
     table.add_column("Field", style="dim", justify='left')
     table.add_column("Content", width=120, justify='full')
-    
+
     for key in info_data.keys():
         val = info_data[key]
         val = "" if not val else val
         table.add_row(key, val)
         # click.echo('{:<30}{:<100}'.format(key, val))
         # print('{:<30}{:<100}'.format(key, val))
-    
+
     console.print(table)

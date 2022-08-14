@@ -40,7 +40,7 @@ class CustomCommand(click.Command):
         self.format_epilog(ctx, formatter)
 
     def format_synopsis(self, formatter: click.HelpFormatter) -> None:
-        """Wirte the synopsis to the formatter if exist.
+        """Write the synopsis to the formatter if exists.
 
         Arguments:
             formatter: The help formatter of the command.

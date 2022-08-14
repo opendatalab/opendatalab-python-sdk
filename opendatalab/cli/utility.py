@@ -30,48 +30,46 @@ class ContextInfo:
         odl_cookie = self._conf_content['user.token'] if self._conf_content['user.token'] else ""
         self.cookie = odl_cookie
 
-    
     def get_client(self) -> Client:
         return Client(self.url, self.token, self.cookie)
-    
+
     def get_content(self):
         return self._conf_content
-    
+
     def set_content(self, content: dict) -> None:
         for key, value in content.items():
             self._conf_content[key] = value
-            
+
             if key == 'user.token' and not content[key]:
                 self.cookie = content[key]
-            
+
     def get_config_content(self):
         try:
             with open(self.conf_file, 'r') as f:
                 config_content = json.load(f)
         except json.decoder.JSONDecodeError:
             config_content = {}
-        
+
         return config_content
-    
+
     def check_config(self):
         res = self.get_config_content()
         if not res:
             init_config_dict = {
-                'endpoint'  : self.url,
+                'endpoint': self.url,
                 'user.email': '',
                 'user.token': '',
-                'odl_anonymous': UUID,                
+                'odl_anonymous': UUID,
+                'in.vpc': False
             }
             result = init_config_dict
             with open(self.conf_file, 'w') as f:
                 json.dump(init_config_dict, f, indent=4, sort_keys=True, separators=(',', ':'))
         else:
             result = res
-        
-        return result
-             
 
-    
+        return result
+
     def update_config(self, content: dict) -> None:
         res = self.get_config_content()
         if res:
@@ -79,8 +77,7 @@ class ContextInfo:
             with open(self.conf_file, 'w') as f:
                 f.seek(0)
                 json.dump(self._conf_content, f, indent=4, sort_keys=True, separators=(',', ':'))
-            
-    
+
     def clean_config(self):
         res = self.get_config_content()
         if not res:
@@ -93,10 +90,10 @@ class ContextInfo:
                     res['user.email'] = ''
                 f.seek(0)
                 json.dump(res, f, indent=4, sort_keys=True, separators=(',', ':'))
-            
+
         return res
-        
-            
+
+
 def _implement_cli(ctx: click.Context, url: str, token: str) -> None:
     ctx.obj = ContextInfo(url, token)
     # ctx.obj.check_config()

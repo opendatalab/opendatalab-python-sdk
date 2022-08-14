@@ -2,27 +2,28 @@
 #
 # Copyright 2022 Shanghai AI Lab. Licensed under MIT License.
 #
-from pathlib import Path
+import os
 import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
+from typing import List
+
 import click
 import oss2
-import os
-
 from tqdm import tqdm
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from opendatalab.cli.utility import ContextInfo, exception_handler
-from opendatalab.utils import bytes2human
 
+from opendatalab.cli.utility import ContextInfo, exception_handler
 
 key_to_downloaded_size_map = {}
 
+
 def download_object(
-    bucket: oss2.Bucket,
-    object_info: oss2.models.SimplifiedObjectInfo,
-    lock: threading.RLock,
-    root: str,
-    pbar: tqdm,
-    limit_speed: int,
+        bucket: oss2.Bucket,
+        object_info: oss2.models.SimplifiedObjectInfo,
+        lock: threading.RLock,
+        root: str,
+        pbar: tqdm,
+        limit_speed: int,
 ):
     def progress_callback(bytes_consumed, _):
         with lock:
@@ -36,7 +37,7 @@ def download_object(
         headers = dict()
         if limit_speed > 0:
             headers[oss2.models.OSS_TRAFFIC_LIMIT] = str(limit_speed)
-            
+
         filename = os.path.join(root, object_info.key.split("/")[-1])
         print(f"Start downloading file: {filename} ...")
         oss2.resumable_download(
@@ -63,8 +64,9 @@ def get_oss_traffic_limit(limit_speed):
         return 838860800
     return limit_speed
 
+
 @exception_handler
-def _implement_get(obj: ContextInfo, name: str, thread: int , limit_speed: int, compressed: bool=True) -> None:
+def _implement_get(obj: ContextInfo, name: str, thread: int, limit_speed: int, compressed: bool = True) -> None:
     ds_split = name.split("/")
     if len(ds_split) > 1:
         dataset_name = ds_split[0]
@@ -72,44 +74,71 @@ def _implement_get(obj: ContextInfo, name: str, thread: int , limit_speed: int, 
     else:
         dataset_name = name
         sub_dir = ""
-        
-    client = obj.get_client()
-    dataset = client.get_dataset(dataset_name)
-    bucket = dataset.get_oss_bucket()
-    prefix = dataset.get_object_key_prefix(compressed)
+
     local_dir = Path.cwd().joinpath(dataset_name)
     if not Path(local_dir).exists():
         Path(local_dir).mkdir(parents=True)
-      
+
+    print(f"local dir: {local_dir}")
+
+    # refactor below codes for retry downloading objects
+    client = obj.get_client()
+    dataset = client.get_dataset(dataset_name)
+    prefix = dataset.get_object_key_prefix(compressed)
+    bucket = dataset.get_oss_bucket()
+
     total_files, total_size = 0, 0
     object_info_list = []
     download_info_body = []
-    print(f"local dir: {local_dir}")
+
     for info in oss2.ObjectIteratorV2(bucket, prefix):
-        if not info.is_prefix() and not info.key.endswith("/"):        
+        if not info.is_prefix() and not info.key.endswith("/"):
             file_name = "/".join(info.key.split("/")[2:])
             f_name = Path(file_name).name
             if not sub_dir:
                 object_info_list.append(info)
                 total_files = total_files + 1
-                total_size = total_size + info.size                
+                total_size = total_size + info.size
                 download_info_body.append({"name": f_name, "size": info.size})
             elif sub_dir and file_name.startswith(sub_dir):
                 object_info_list.append(info)
                 total_files = total_files + 1
-                total_size = total_size + info.size 
+                total_size = total_size + info.size
                 download_info_body.append({"name": f_name, "size": info.size})
             else:
-                pass 
-        
+                pass
+
     client.get_api().call_download_log(dataset_name, download_info_body)
     click.echo(f"Scan done, total files: {len(object_info_list)}, total size: {tqdm.format_sizeof(total_size)}")
+    limit_speed_per_thread = get_oss_traffic_limit(int(limit_speed * 1024 * 8 / thread))
 
+    while True:
+        error_object_list = download_objects_retry(bucket=bucket,
+                                                   local_dir=local_dir,
+                                                   object_info_list=object_info_list,
+                                                   total_size=total_size,
+                                                   limit_speed_per_thread=limit_speed_per_thread,
+                                                   thread=thread)
+        if len(error_object_list) > 0:
+            bucket = dataset.refresh_oss_bucket()
+            download_objects_retry(bucket=bucket,
+                                   local_dir=local_dir,
+                                   object_info_list=error_object_list,
+                                   total_size=None,
+                                   limit_speed_per_thread=limit_speed_per_thread,
+                                   thread=thread)
+        else:
+            break
+
+    print("Download Completed!")
+
+
+def download_objects_retry(bucket, local_dir, object_info_list, total_size, limit_speed_per_thread, thread) -> List:
     pbar = tqdm(total=total_size, unit="B", unit_scale=True)
     lock = threading.RLock()
     error_object_list = []
-    
-    limit_speed_per_thread = get_oss_traffic_limit(int(limit_speed * 1024 * 8 / thread))
+
+    # real download procedure
     with ThreadPoolExecutor(max_workers=thread) as executor:
         future_to_obj = {
             executor.submit(
@@ -124,7 +153,8 @@ def _implement_get(obj: ContextInfo, name: str, thread: int , limit_speed: int, 
                 error_object_list.append(obj)
 
     pbar.close()
-    if len(error_object_list) != 0:
-        pass
-        # TODO
 
+    if len(error_object_list) != 0:
+        return error_object_list
+
+    return error_object_list

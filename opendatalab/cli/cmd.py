@@ -10,52 +10,59 @@ import click
 from opendatalab.__version__ import __version__, __url__, __released_date__, __service_version__
 from opendatalab.cli.custom import CustomCommand
 from opendatalab.cli.utility import ContextInfo
+from opendatalab.cli.policy import service_agreement_url, private_policy_url
+
 
 @click.group(context_settings={"help_option_names": ("-h", "--help")})
 @click.version_option(__version__)
-@click.option("-u", "--url", type=str, default=__url__, help="The login url.", hidden=True) 
-@click.option("-t", "--token", type=str, default="", help="OpenDatalab user api token", hidden=True, envvar="OPENDATALAB-API-TOKEN",)
+@click.option("-u", "--url", type=str, default=__url__, help="The login url.", hidden=True)
+@click.option("-t", "--token", type=str, default="", help="OpenDatalab user api token", hidden=True,
+              envvar="OPENDATALAB-API-TOKEN", )
 @click.pass_context
 def cli(ctx: click.Context, url: str, token: str) -> None:
-    """You can use `opendatalab <command>` to access open datasets.\f
+    """You can use `odl <command>` to access open datasets.\f
 
     Arguments:
+        token:
         ctx: The context to be passed as the first argument.
         url: The login URL.
     """
     # ctx.ensure_object(dict)
-    
+
     from opendatalab.cli.utility import _implement_cli
     _implement_cli(ctx, url, token)
-    
+
+
 command = partial(cli.command, cls=CustomCommand)
+
 
 @command(
     synopsis=(
-        "$ opendatalab version      # show opendatalab version.",
+            "$ odl version      # show opendatalab version.",
     )
 )
 def version():
     """Show opendatalab version.
     """
     click.echo(f"opendatalab: {__version__}, released: {__released_date__}")
-    
+
 
 @command(
     synopsis=(
-        "$ opendatalab upgrade      # check opendatalab version upgrade.",
+            "$ odl upgrade      # check opendatalab version upgrade.",
     )
 )
 def upgrade():
     """upgrade opendatalab version.
     """
     ## need api to check lastest version
-    click.echo(f"***check version:***\nopendatalab: {__version__} \nlatest version: {__released_date__}\nservice_version: {__service_version__}\n")
+    click.echo(
+        f"***check version:***\nopendatalab: {__version__} \nlatest version: {__released_date__}\nservice_version: {__service_version__}\n")
 
 
 @command(
     synopsis=(
-        "$ opendatalab logout      # logout current account",
+            "$ odl logout      # logout current account",
     )
 )
 @click.pass_obj
@@ -67,11 +74,11 @@ def logout(obj: ContextInfo):
     """
     from opendatalab.cli.logout import _implement_logout
     _implement_logout(obj)
-            
-    
+
+
 @command(
     synopsis=(
-        "$ opendatalab login -u -p      # login opendatalab with username and password",
+            "$ odl login -u -p      # login opendatalab with username and password",
     )
 )
 @click.option(
@@ -83,7 +90,7 @@ def logout(obj: ContextInfo):
 )
 @click.option(
     "-p",
-    "--password", 
+    "--password",
     prompt="Password",
     hide_input=True,
     default="", help="Password for opendatalab."
@@ -99,12 +106,12 @@ def login(obj: ContextInfo, username: str, password: str):
     """
     from opendatalab.cli.login import _implement_login
     _implement_login(obj, username, password)
-    
+
 
 @command(
     synopsis=(
-        "$ opendatalab ls dataset              # list dataset files.",
-        "$ opendatalab ls dataset/sub_dir      # list dataset/sub_dir files.",
+            "$ odl ls dataset              # list dataset files.",
+            "$ odl ls dataset/sub_dir      # list dataset/sub_dir files.",
     )
 )
 @click.argument("name", nargs=1)
@@ -118,11 +125,11 @@ def ls(obj: ContextInfo, name: str) -> None:
     """
     from opendatalab.cli.ls import _implement_ls
     _implement_ls(obj, name)
-    
+
 
 @command(
     synopsis=(
-        "$ opendatalab search keywords      # search dataset with keywords.",
+            "$ odl search keywords      # search dataset with keywords.",
     )
 )
 @click.argument("keywords", nargs=1)
@@ -137,11 +144,11 @@ def search(obj: ContextInfo, keywords):
     from opendatalab.cli.search import _implement_search
 
     _implement_search(obj, keywords)
-    
+
 
 @command(
     synopsis=(
-        "$ opendatalab info dataset_name      # show dataset info.",
+            "$ odl info dataset_name      # show dataset info.",
     )
 )
 @click.argument("name", nargs=1)
@@ -155,11 +162,11 @@ def info(obj: ContextInfo, name):
     """
     from opendatalab.cli.info import _implement_info
     _implement_info(obj, name)
-    
-    
+
+
 @command(
     synopsis=(
-        "$ opendatalab get dataset_name      # get dataset files into local.",
+            "$ odl get dataset_name      # get dataset files into local.",
     )
 )
 @click.argument("name", nargs=1)
@@ -185,7 +192,10 @@ def get(obj: ContextInfo, name, thread, limit_speed):
         name (str): dataset name\f
         thread (int): multil-thread number\f
         limit_speed (int): limit download speed, for not limit set value to 0
-    """    
+    """
+    click.confirmation_option(
+        f"By downloading this dataset, you have read and agree to the License Requirement, User Service Agreement:{service_agreement_url}、Privacy Policy: {private_policy_url}"
+        f"\nplease see links:{service_agreement_url} and  {private_policy_url}")
     from opendatalab.cli.get import _implement_get
     _implement_get(obj, name, thread, limit_speed)
 

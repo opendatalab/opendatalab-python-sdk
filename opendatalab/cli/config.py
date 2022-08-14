@@ -6,12 +6,12 @@ import json
 import os
 from pathlib import Path
 
+
 class Config:
     def __init__(self) -> None:
         conf_file = self._get_config_filepath()
         self.conf_file = conf_file
-        
-    
+
     @staticmethod
     def _get_config_filepath() -> str:
         """Get the path of the config file.
@@ -22,10 +22,11 @@ class Config:
         conf_dir = Path(odl_conf).parent
         if not Path(conf_dir).exists():
             conf_dir.mkdir(parents=True)
-            
+
         if not Path(odl_conf).exists():
-            Path(odl_conf).touch(exist_ok=True)          
-            
-        return odl_conf  
-            
+            Path(odl_conf).touch(exist_ok=True)
+
+        return odl_conf
+
+
 config = Config()
