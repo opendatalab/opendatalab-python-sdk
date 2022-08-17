@@ -11,7 +11,7 @@ from opendatalab.utils import bytes2human
 
 
 @exception_handler
-def _implement_info(obj: ContextInfo, dataset: str) -> None:
+def implement_info(obj: ContextInfo, dataset: str) -> None:
     client = obj.get_client()
     odl_api = client.get_api()
     info_data = odl_api.get_info(dataset)
@@ -32,20 +32,20 @@ def _implement_info(obj: ContextInfo, dataset: str) -> None:
     if publisher_list and len(publisher_list) > 0:
         publisher_str = ", ".join([x['name'] for x in publisher_list])
 
-    mediaTypes_list = info_data['mediaTypes']
-    mediaTypes_str = ""
-    if mediaTypes_list and len(mediaTypes_list) > 0:
-        mediaTypes_str = ", ".join([x['name'] for x in mediaTypes_list])
+    media_types_list = info_data['mediaTypes']
+    media_types_str = ""
+    if media_types_list and len(media_types_list) > 0:
+        media_types_str = ", ".join([x['name'] for x in media_types_list])
 
-    labelTypes_list = info_data['labelTypes']
-    labelTypes_str = ""
-    if labelTypes_list and len(labelTypes_list) > 0:
-        labelTypes_str = ", ".join([x['name'] for x in labelTypes_list])
+    label_types_list = info_data['labelTypes']
+    label_types_str = ""
+    if label_types_list and len(label_types_list) > 0:
+        label_types_str = ", ".join([x['name'] for x in label_types_list])
 
-    taskTypes_list = info_data['taskTypes']
-    taskTypes_str = ""
-    if labelTypes_list and len(taskTypes_list) > 0:
-        taskTypes_str = ", ".join([x['name'] for x in taskTypes_list])
+    task_types_list = info_data['taskTypes']
+    task_types_str = ""
+    if label_types_list and len(task_types_list) > 0:
+        task_types_str = ", ".join([x['name'] for x in task_types_list])
 
     tags_list = info_data['tags']
     tags_str = ""
@@ -57,9 +57,9 @@ def _implement_info(obj: ContextInfo, dataset: str) -> None:
     if citation_data and len(citation_data) > 0:
         citation_str = citation_data.strip("```").replace('\r', '').replace('\n', '')
 
-    simliar_ds_str = ""
+    similar_ds_str = ""
     if similar_data_list and len(similar_data_list) > 0:
-        simliar_ds_str = ", ".join([x['name'] for x in similar_data_list])
+        similar_ds_str = ", ".join([x['name'] for x in similar_data_list])
 
     info_data = {
         'Name': info_data['name'],
@@ -69,13 +69,13 @@ def _implement_info(obj: ContextInfo, dataset: str) -> None:
         'Issue Time': info_data['publishDate'],
         'License': license_str,
         'Author': publisher_str,
-        'Data Type': mediaTypes_str,
-        'Label Type': labelTypes_str,
-        'Task Type': taskTypes_str,
+        'Data Type': media_types_str,
+        'Label Type': label_types_str,
+        'Task Type': task_types_str,
         'Tags': tags_str,
         'HomePage': info_data['publishUrl'],
         'Citation': citation_str,
-        'Similar Datasets': simliar_ds_str,
+        'Similar Datasets': similar_ds_str,
     }
 
     console = Console()

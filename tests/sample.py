@@ -1,8 +1,11 @@
 import json
 import pytest
-from opendatalab.cli.ls import _implement_ls
-from opendatalab.cli.info import _implement_info
-from opendatalab.cli.login import _implement_login
+
+from opendatalab.cli.get import implement_get
+from opendatalab.cli.ls import implement_ls
+from opendatalab.cli.info import implement_info
+from opendatalab.cli.login import implement_login
+from opendatalab.cli.upgrade import implement_upgrade
 from opendatalab.cli.utility import ContextInfo
 from opendatalab.client.api import OpenDataLabAPI
 from opendatalab.__version__ import __url__
@@ -20,7 +23,7 @@ if __name__ == '__main__':
     # 0. login with uaa
     account = "191637988@qq.com" #"191637988@qq.com"  "chenlu@pjlab.org.cn"
     pw = "qq11111111"
-    _implement_login(ctx, account, pw)
+    # _implement_login(ctx, account, pw)
 
     # 1. search demo    
     # res_list = odl_api.search_dataset("coco")
@@ -29,8 +32,8 @@ if __name__ == '__main__':
     # print(f'*****'*5)
     
     # 2. list demo
-    _implement_ls(ctx, 'TAPOS')
-    print(f'*****'*5)   
+    # _implement_ls(ctx, 'TAO')
+    print(f'*****'*5)
     
     # 3. read file demo 
     # dataset = client.get_dataset('TAPOS')
@@ -40,7 +43,18 @@ if __name__ == '__main__':
     # print(f'*****'*5)
     
     # 4. get dataset info
-    _implement_info(ctx, 'FB15k')
+    # _implement_info(ctx, 'FB15k')
+
+    # 5. download
+    # implement_get(ctx, "MNIST", 4, 0)  #
+    # implement_get(ctx, "TAPOS", 4, 0) # /categories/categories.txt
+    # implement_get(ctx, '20-MAD', 4, 0) # 1637
+    # implement_get(ctx, "ArCOV-19", 4, 0) # 1666,  zip 109M  pass
+    # implement_get(ctx, "TAO/1-TAO_TRAIN.zip", 4, 0) # 125, zip 2-TAO_VAL.zip 1-TAO_TRAIN.zip
+    # implement_get(ctx, 'FB15k', 4, 0) # 84, zip 17.4M pass
+    # implement_get(ctx, "GOT-10k/data/test_data.zip", 4, 0) # 139, zip 1.16G GOT-10k
+    # implement_get(ctx, "TAPOS/raw/Pre-extracted frames (Google Drive)/flow.tar.gz", 4, 0)
+    implement_upgrade(ctx)
     print(f'*****'*5)
 
     

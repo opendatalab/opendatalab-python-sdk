@@ -8,7 +8,7 @@ from opendatalab.utils import bytes2human
 
 
 @exception_handler
-def _implement_ls(obj: ContextInfo, dataset: str) -> None:
+def implement_ls(obj: ContextInfo, dataset: str) -> None:
     client = obj.get_client()
 
     ds_split = dataset.split("/")

@@ -3,12 +3,12 @@
 # Copyright 2022 Shanghai AI Lab. Licensed under MIT License.
 #
 import json
-from importlib_metadata import Deprecated
 import requests
-from opendatalab.exception import *
-from opendatalab.utils import bytes2human, UUID
+
 from opendatalab.__version__ import __version__
 from opendatalab.client.uaa import get_odl_token
+from opendatalab.exception import *
+from opendatalab.utils import UUID
 
 
 class OpenDataLabAPI(object):
@@ -17,7 +17,7 @@ class OpenDataLabAPI(object):
         self.token = token
         self.odl_cookie = odl_cookie
 
-    def get_dataset_sts(self, dataset, expires=3600):
+    def get_dataset_sts(self, dataset, expires=900):
         """Get dataset sts by dataset_name
         Args:
             expires (int): expire timeout unit seconds
@@ -116,7 +116,6 @@ class OpenDataLabAPI(object):
             raise OpenDataLabError(resp.status_code, resp.text)
 
         data = resp.json()["data"]
-
         return data
 
     def call_download_log(self, dataset, download_info):
@@ -158,5 +157,17 @@ class OpenDataLabAPI(object):
             'user.token': odl_token,
         }
 
-        print(f"odl_token: {odl_token}")
+        # print(f"odl_token: {odl_token}")
         return config_json
+
+    def check_version(self):
+        resp = requests.get(
+            f"{self.host}/api/sdk/checkVersion",
+            headers={"Content-Type": "application/json"},
+        )
+
+        if resp.status_code != 200:
+            raise OpenDataLabError(resp.status_code, resp.text)
+
+        version_info = resp.json()["data"]
+        return version_info

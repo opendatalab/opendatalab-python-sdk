@@ -22,6 +22,7 @@ class Dataset:
         self.open_data_lab_api = OpenDataLabAPI(host, token, odl_cookie)
 
         self.oss_bucket = None
+        self.bucket_name = None
         self.oss_path_prefix = ""
         self.init_oss_bucket()
 
@@ -38,16 +39,18 @@ class Dataset:
 
     def init_oss_bucket(self, expires=900):
         sts = self.open_data_lab_api.get_dataset_sts(self.dataset_name, expires=expires)
-        sts_point, sts_use_cname = self.select_endpoint(sts)
 
-        if sts_point:
-            auth = oss2.StsAuth(sts["accessKeyId"], sts["accessKeySecret"], sts["securityToken"])
+        if sts:
             path_info = sts["path"].replace("oss://", "").split("/")
             bucket_name = path_info[0]
-            self.oss_bucket = oss2.Bucket(auth, sts_point, bucket_name, is_cname=sts_use_cname)
-            self.oss_path_prefix = "/".join(path_info[1:])
-        else:
-            raise OpenDataLabError(1001, "access to bucket error")
+            sts_point, sts_use_cname = self.select_endpoint(sts)
+
+            if sts_point:
+                auth = oss2.StsAuth(sts["accessKeyId"], sts["accessKeySecret"], sts["securityToken"])
+                self.oss_bucket = oss2.Bucket(auth, sts_point, bucket_name, is_cname=sts_use_cname)
+                self.oss_path_prefix = "/".join(path_info[1:])
+            else:
+                raise OpenDataLabError(1001, "access to bucket error")
 
     def get_oss_bucket(self) -> oss2.Bucket:
         if self.oss_bucket is None:
@@ -55,7 +58,7 @@ class Dataset:
         return self.oss_bucket
 
     def refresh_oss_bucket(self) -> oss2.Bucket:
-        self.init_oss_bucket()
+        self.init_oss_bucket(expires=900)
         return self.oss_bucket
 
     def get_object_key_prefix(self, compressed: bool = True) -> str:
@@ -68,15 +71,25 @@ class Dataset:
     def select_endpoint(cls, sts):
         s = requests.Session()
         sts_endpoints = sts["endpoints"]
-        for _, endpoint in enumerate(sts_endpoints):
+        path_info = sts["path"].replace("oss://", "").split("/")
+        bucket_name = path_info[0]
+
+        if len(sts_endpoints) > 0:
+            endpoint = sts_endpoints[-1]
             sts_endpoint = endpoint['url']
             sts_use_cname = endpoint['useCname']
-            check_url = str(sts_endpoint).rstrip("/") + "/check_connected"
+
+            url_splitter = "://"
+            url_split_arr = str(sts_endpoint).split(url_splitter)
+            url_prefix = url_split_arr[0]
+            url_body = url_split_arr[1]
+            check_url = url_prefix + url_splitter + bucket_name + "." + url_body + "/check_connected"
             s.mount(check_url, HTTPAdapter(max_retries=0))
+
             try:
                 resp = s.get(check_url, timeout=(0.5, 1))
                 if resp.status_code == http.HTTPStatus.OK:
+                    # print(f"check_url: {check_url}")
                     return sts_endpoint, sts_use_cname
-            except:
-                pass
-        raise ConnectionError("Exceptions occurs, Please check your network...")
+            except Exception as e:
+                raise ConnectionError("Exceptions occurs, Please check your network...")

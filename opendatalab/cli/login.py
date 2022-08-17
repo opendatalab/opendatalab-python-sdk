@@ -5,7 +5,7 @@ from opendatalab.cli.utility import ContextInfo, exception_handler
 
 
 @exception_handler
-def _implement_login(obj: ContextInfo, username: str, password: str) -> None:    
+def implement_login(obj: ContextInfo, username: str, password: str) -> None:
     client = obj.get_client()
     odl_api = client.get_api()
     # config_json = odl_api.login(username=username, password=password)

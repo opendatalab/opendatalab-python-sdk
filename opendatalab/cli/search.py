@@ -22,13 +22,13 @@ def rich_content_str(keywords: str, content: str):
         for i in start_index_list:
             result.append(content[curs:i])
             result.append(hl_prefix)
-            result.append(content[i : i + len_keywords])
+            result.append(content[i: i + len_keywords])
             result.append(hl_suffix)
             curs = i + len_keywords
 
         if curs < len(content):
             result.append(content[curs:])
-    
+
     rich_result = ''.join(result)
     if not rich_result:
         rich_result = content
@@ -37,13 +37,11 @@ def rich_content_str(keywords: str, content: str):
 
 
 @exception_handler
-def _implement_search(obj: ContextInfo, keywords: str) -> None:
-    
+def implement_search(obj: ContextInfo, keywords: str) -> None:
     client = obj.get_client()
     odl_api = client.get_api()
     result_list = odl_api.search_dataset(keywords)
 
-    # rprint('{:<30}{:<10}{:<100}\t{:<10}\n'.format('Name', 'FileSize', 'Description', 'DownloadCount'))
     console = Console()
     table = Table(show_header=True, header_style='bold cyan')
     table.add_column("Name", style="dim", justify='left')
@@ -66,6 +64,7 @@ def _implement_search(obj: ContextInfo, keywords: str) -> None:
             # rprint('{:<30}{:<10}{:<100}\t{:<10}\n'.format(ds_name_rich, ds_file_bytes, ds_desc_rich, ds_dw_cnt))
     console.print(table)
 
+
 if __name__ == '__main__':
     console = Console()
     table = Table(show_header=True, header_style='bold cyan')
@@ -79,12 +78,11 @@ if __name__ == '__main__':
     contents = 'COCO-QA is a dataset for visual question answering. It consists of'
     ds_name_rich = rich_content_str(key, name)
     ds_desc_rich = rich_content_str(key, contents)
-    
+
     table.add_row(ds_name_rich, '28.2K', ds_desc_rich, str(100))
 
     # rprint('{:<30}{:<10}{:<100}\t{:<10}\n'.format('Name', 'FileSize', 'Description', 'DownloadCount'))
     # rprint('{:<30}{:<10}{:<100}\t{:<10}\n'.format(ds_name_rich, '100 MB', ds_desc_rich, 10))
-
 
     key = 'COCO'
     name = 'DeCOCO'
@@ -105,5 +103,5 @@ if __name__ == '__main__':
 
     # rprint('{:<30}{:<10}{:<100}\t{:<10}\n'.format('Name', 'FileSize', 'Description', 'DownloadCount'))
     # rprint('{:<30}{:<10}{:<100}\t{:<10}\n'.format(ds_name_rich, '100 MB', ds_desc_rich, 10))
-    
+
     console.print(table)

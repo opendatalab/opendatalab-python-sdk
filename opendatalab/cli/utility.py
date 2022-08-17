@@ -9,6 +9,7 @@ import json
 from functools import wraps
 from typing import Any, Callable, TypeVar
 import click
+from opendatalab.__version__ import __version__
 
 from opendatalab.cli.config import config as client_config
 from opendatalab.client.client import Client
@@ -29,6 +30,10 @@ class ContextInfo:
         self._conf_content = self.check_config()
         odl_cookie = self._conf_content['user.token'] if self._conf_content['user.token'] else ""
         self.cookie = odl_cookie
+
+        self.check_ret = 0
+        self.install_version = __version__
+        self.latest_version = None
 
     def get_client(self) -> Client:
         return Client(self.url, self.token, self.cookie)
@@ -60,7 +65,7 @@ class ContextInfo:
                 'user.email': '',
                 'user.token': '',
                 'odl_anonymous': UUID,
-                'in.vpc': False
+                # 'in.vpc': False
             }
             result = init_config_dict
             with open(self.conf_file, 'w') as f:
@@ -93,8 +98,12 @@ class ContextInfo:
 
         return res
 
+    def set_check_info(self, latest_version, check_ret):
+        self.latest_version = latest_version
+        self.check_ret = check_ret
 
-def _implement_cli(ctx: click.Context, url: str, token: str) -> None:
+
+def implement_cli(ctx: click.Context, url: str, token: str) -> None:
     ctx.obj = ContextInfo(url, token)
     # ctx.obj.check_config()
 
@@ -122,7 +131,7 @@ def exception_handler(func: _Callable) -> _Callable:
     """
 
     @wraps(func)
-    def wrapper(*args: Any, **kwargs: Any) -> None:
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         try:
             func(*args, **kwargs)
         except OpenDataLabError as err:

@@ -5,7 +5,6 @@
 """Customization of the click classes for OpenDataLab CLI."""
 
 from typing import Any
-
 import click
 
 
@@ -35,7 +34,7 @@ class CustomCommand(click.Command):
         formatter.width = 100
         self.format_usage(ctx, formatter)
         self.format_help_text(ctx, formatter)
-        self.format_synopsis(formatter)  
+        self.format_synopsis(formatter)
         self.format_options(ctx, formatter)
         self.format_epilog(ctx, formatter)
 

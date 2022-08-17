@@ -6,7 +6,7 @@ import click
 
 
 @exception_handler
-def _implement_logout(obj: ContextInfo) -> None:
+def implement_logout(obj: ContextInfo) -> None:
     
     config_content = obj.get_config_content()
     username = ""
@@ -18,4 +18,4 @@ def _implement_logout(obj: ContextInfo) -> None:
             print(f"{username} Logged Out")
             obj.clean_config()
     else:
-        print("Warning: You haven't logined, please login first.")
+        print("Warning: You haven't login, please login first.")
