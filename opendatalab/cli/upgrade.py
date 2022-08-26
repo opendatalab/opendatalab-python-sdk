@@ -12,9 +12,10 @@ from opendatalab.cli.utility import ContextInfo, exception_handler
 @exception_handler
 def implement_upgrade(obj: ContextInfo):
     """
-    check cli version compare with svc
+        check cli version compare with svc
     Args:
-        obj: context
+        obj (ContextInfo):
+
     Returns:
 
     """
@@ -22,18 +23,18 @@ def implement_upgrade(obj: ContextInfo):
     odl_api = client.get_api()
     version_info = odl_api.check_version()
 
-    major_version = version_info['majorVersion']
-    minor_version = version_info['minorVersion']
-    service_version = version_info['serviceVersion']
-    is_beta = version_info['isBeta']
+    latest_major_version = version_info['majorVersion']
+    latest_minor_version = version_info['minorVersion']
+    latest_service_version = version_info['serviceVersion']
+    is_beta_latest = version_info['isBeta']
 
-    # if beta False, ignore beta version, set beta_version = 0
-    if is_beta:
-        beta_version = version_info['betaVersion']
-        res_version = major_version + '.' + minor_version + 'b' + beta_version
+    # to discuss: if beta False, ignore beta version, set beta_version = 0
+    if is_beta_latest:
+        latest_beta_version = version_info['betaVersion']
+        latest_res_version = latest_major_version + '.' + latest_minor_version + 'b' + latest_beta_version
     else:
-        beta_version = 0
-        res_version = major_version + '.' + minor_version + '.' + beta_version
+        latest_beta_version = 0
+        latest_res_version = latest_major_version + '.' + latest_minor_version + '.' + latest_beta_version
 
     # installed_svc = __svc__
     installed_version = __version__
@@ -50,39 +51,68 @@ def implement_upgrade(obj: ContextInfo):
         cur_b_ver = 0
         pass
 
-    is_major_upgrade = operator.eq(float(major_version), float(cur_major_ver))
-    is_minor_upgrade = operator.eq(float(minor_version), float(cur_minor_ver))
-    is_beta_upgrade = operator.eq(float(beta_version), float(cur_b_ver))
 
-    # click.echo(f"check version: installed :{installed_version}, latest: {res_version}")
+    """
+    version :
+        released: 0.0.1.0 -> 0.0.2.0 ... -> 0.1.0.0
+        beta    : 0.0.1b10 -> 0.0.1b11 .. -> 0.0.1b90...
+        major_version: 0.0
+        minor_version: 1
+        is_beta: bool, True->b, False->''
+        beta_version: released -> 0, beta -> 90
+    upgrade flag
+        -1: pre-check, 
+        0: checked-no-need-grade, 
+        1: checked-need-upgrade
+    """
+    # check_ret_code = -1
 
-    check_ret_code = 0
-    if is_major_upgrade:
-        if is_minor_upgrade:
-            if is_beta_upgrade:
-                check_ret_code = 0
-                # click.secho(f"Yea! check completed, no need upgrade current version.", fg='blue')
-            else:
-                if operator.gt(beta_version, cur_b_ver):
-                    pass
-                else:
-                    check_ret_code = 1
-                    click.secho(f"[Error]: upgrade needed, please use 'pip install -U opendatalab'", fg='red')
-                    sys.exit(-1)
-        else:
-            if operator.gt(minor_version, cur_minor_ver):
-                pass
-            else:
-                check_ret_code = 1
-                click.secho(f"[Error]: upgrade needed, please use 'pip install -U opendatalab'", fg='red')
-                sys.exit(-1)
+    if operator.gt(float(latest_major_version), float(cur_major_ver)):
+        check_ret_code = 1
+        click.secho(f"check version: installed :{installed_version}, latest: {latest_res_version}", fg='green')
+        click.secho(f"[Fatal]: upgrade needed, please use 'pip install -U opendatalab'", fg='red')
+        obj.set_check_info(latest_version=latest_res_version, check_ret=check_ret_code)
+        sys.exit(-1)
+
+    elif operator.lt(float(latest_major_version), float(cur_major_ver)):
+        check_ret_code = 0
+        obj.set_check_info(latest_version=latest_res_version, check_ret=check_ret_code)
+
     else:
-        if not operator.gt(major_version, cur_major_ver):
+        if operator.gt(float(latest_minor_version), float(cur_minor_ver)):
             check_ret_code = 1
-            click.secho(f"[Error]: upgrade needed, please use 'pip install -U opendatalab'", fg='red')
+            click.secho(f"odl version: current: {installed_version}, latest: {latest_res_version}", fg='green')
+            click.secho(f"[Fatal]: upgrade needed, please use 'pip install -U opendatalab'", fg='red')
+            obj.set_check_info(latest_version=latest_res_version, check_ret=check_ret_code)
             sys.exit(-1)
-        else:
-            pass
 
-    obj.set_check_info(latest_version=res_version, check_ret=check_ret_code)
+        elif operator.lt(float(latest_minor_version), float(cur_minor_ver)):
+            check_ret_code = 0
+            obj.set_check_info(latest_version=latest_res_version, check_ret=check_ret_code)
+
+        else:
+            if is_installed_beta and is_beta_latest:
+                if operator.gt(float(latest_beta_version), float(cur_b_ver)):
+                    check_ret_code = 1
+                    click.secho(f"odl version: current: {installed_version}, latest: {latest_res_version}", fg='green')
+                    click.secho(f"[Fatal]: upgrade needed, please use 'pip install -U opendatalab'", fg='red')
+                    obj.set_check_info(latest_version=latest_res_version, check_ret=check_ret_code)
+                    sys.exit(-1)
+                else:
+                    check_ret_code = 0
+                    obj.set_check_info(latest_version=latest_res_version, check_ret=check_ret_code)
+
+            elif is_beta_latest and not is_installed_beta:
+                # TODO: keep latest released or beta version
+                check_ret_code = 1
+                click.secho(f"odl version: current: {installed_version}, latest: {latest_res_version}", fg='green')
+                click.secho(f"[Fatal]: upgrade needed, please use 'pip install -U opendatalab'", fg='red')
+                obj.set_check_info(latest_version=latest_res_version, check_ret=check_ret_code)
+                sys.exit(-1)
+
+            else:
+                check_ret_code = 0
+                obj.set_check_info(latest_version=latest_res_version, check_ret=check_ret_code)
+
+    # obj.set_check_info(latest_version=latest_res_version, check_ret=check_ret_code)
     # return installed_version, res_version, check_ret_code

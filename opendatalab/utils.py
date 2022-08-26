@@ -5,7 +5,8 @@
 import os
 import uuid
 from urllib.parse import urlparse
-from opendatalab.__version__ import __url__, __version__
+
+from opendatalab.__version__ import __version__
 
 UUID = str(uuid.uuid3(uuid.NAMESPACE_URL, f"opendatalab-python-sdk/{__version__}")).replace("-", "")
 

@@ -2,55 +2,67 @@
 #
 # Copyright 2022 Shanghai AI Lab. Licensed under MIT License.
 #
-from typing import Optional, TYPE_CHECKING, Union
+from typing import Optional
 
 
 class OpenDataLabError(Exception):
     """
-    This is the base class for OpenDataLab custom exceptions.
-
-    Args:
-        Exception (str): the error message
+    Base class for OpenDataLab custom exceptions.
     """
 
-    def __init__(
-            self,
-            response_code: Optional[int] = None,
-            error_message: str = "",
-    ) -> None:
-
-        super().__init__(self, error_message)
-        self.response_code = response_code
-        self.error_message = error_message
+    def __init__(self, resp_code: Optional[int] = None, error_msg: str = ""):
+        super().__init__(self, error_msg)
+        self.resp_code = resp_code
+        self.error_msg = error_msg
 
     def __str__(self) -> str:
-        if self.response_code is not None:
-            return f"{self.response_code}: {self.error_message}"
+        if self.resp_code:
+            return f"{self.resp_code}: {self.error_msg}"
         else:
-            return f"{self.error_message}"
+            return f"{self.error_msg}"
 
 
-class OdlAuthError(OpenDataLabError):
-    def __init__(self, response_code: Optional[int] = None, error_message: str = "") -> None:
-        super().__init__(response_code, error_message)
+class RespError(OpenDataLabError):
+    """
+
+    """
+    STATUS_CODE: int
+    _INDENT = " " * len(__qualname__)
+
+    def __init__(self, resp_code: Optional[int] = None, error_msg: str = ""):
+        super().__init__(resp_code, error_msg)
+
+    def __init_subclass__(cls, **kwargs) -> None:
+        cls._INDENT = " " * len(cls.__name__)
+
+    def __str__(self) -> str:
+        if hasattr(self, "resp_code"):
+            return f"Error: {self.STATUS_CODE}, error_msg: {self.error_msg}"
+
+        return super().__str__()
 
 
-class OdlDatasetAccessDeniedError(OpenDataLabError):
-    def __init__(self, response_code: Optional[int] = None, error_message: str = "") -> None:
-        super().__init__(response_code, error_message)
-
-    pass
+class OdlAuthError(RespError):
+    STATUS_CODE = 401
 
 
-class OdlDatasetNotExistsError(OpenDataLabError):
-    def __init__(self, response_code: Optional[int] = None, error_message: str = "") -> None:
-        super().__init__(response_code, error_message)
-
-    pass
+class OdlAccessDeniedError(RespError):
+    STATUS_CODE = 403
 
 
-class OdlRequestNeedToken(OpenDataLabError):
-    def __init__(self, response_code: Optional[int] = None, error_message: str = "") -> None:
-        super().__init__(response_code, error_message)
+class OdlDataNotExistsError(RespError):
+    STATUS_CODE = 404
 
-    pass
+
+class OdlAccessCdnError(RespError):
+    STATUS_CODE = 412
+
+
+class InternalServerError(RespError):
+    STATUS_CODE = 500
+
+# if __name__ == "__main__":
+#     odl_auth = OdlAuthError(error_msg="auth failure")
+#     odl_not_exist = OdlDataNotExistsError(error_msg="aaa not exits")
+#     print(odl_auth)
+#     print(odl_not_exist)

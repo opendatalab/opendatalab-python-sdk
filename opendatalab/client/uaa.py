@@ -1,3 +1,6 @@
+import sys
+
+import click
 import requests
 import json
 import time
@@ -16,7 +19,7 @@ api_public_key = "/api/v1/cipher/getPubKey"
 api_user_info = "/api/v1/login/getUserInfo"
 api_auth = "/api/v1/internal/auth"
 
-is_prd_env = False
+is_prd_env = False  # False True
 
 clientId = odl_prd_clientId if is_prd_env else odl_dev_clientId
 uaa_url_prefix = uaa_prd_url_prefix if is_prd_env else uaa_dev_url_prefix
@@ -70,14 +73,18 @@ def get_account(account, password):
 
     result = None
     authorization = None
+    sso_uid = None
     if resp.status_code == 200:
         result = resp.json()['data']
 
     if result:
         authorization = resp.headers['authorization']
-        ssoUid = resp.json()['data']['ssoUid']
+        sso_uid = resp.json()['data']['ssoUid']
+    else:
+        click.secho(f"Error: Auth failure with account: {account}", err=True, fg="red")
+        sys.exit(1)
 
-    return authorization, ssoUid
+    return authorization, sso_uid
 
 
 def get_user_info(authorization):
@@ -95,9 +102,9 @@ def get_user_info(authorization):
     return result
 
 
-def get_auth_code(ssouid):
+def get_auth_code(sso_uid):
     result = None
-    if ssouid:
+    if sso_uid:
         client_id = {'clientId': clientId}
         data = json.dumps(client_id)
 
@@ -105,7 +112,7 @@ def get_auth_code(ssouid):
                              data=data,
                              headers={
                                  "Content-Type": "application/json",
-                                 "Cookie": f"ssouid={ssouid}",
+                                 "Cookie": f"ssouid={sso_uid}",
                              }
                              )
         if resp.status_code == 200:
@@ -117,14 +124,20 @@ def get_auth_code(ssouid):
 def get_odl_token(account, password):
     authorization, sso_uid = get_account(account=account, password=password)
     # sso_uid = get_user_info(authorization=authorization)
-    auth_code = get_auth_code(ssouid=sso_uid)
+    auth_code = None
+    if sso_uid:
+        auth_code = get_auth_code(sso_uid=sso_uid)
+
+    if not auth_code:
+        click.secho(f"Error: Auth failure with account: {account}", err=True, fg="red")
+        sys.exit(1)
 
     return auth_code
 
 
 def main():
-    account = "191637988@qq.com"  # "191637988@qq.com"  "chenlu@pjlab.org.cn"
-    pw = "qq11111111"
+    account = "wangrui@pjlab.org.cn"  #"191637988@qq.com"  # "191637988@qq.com"  "chenlu@pjlab.org.cn"
+    pw = "pjlab123456" #"qq11111111"  # qq11111111  aaaa
     get_odl_token(account, pw)
 
 

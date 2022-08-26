@@ -57,7 +57,7 @@ Commands:
 
 ### Version
 ```cmd
-$ opendatalab version
+$ odl version
 opendatalab, 0.0.1b70
 ```
 
@@ -106,7 +106,7 @@ t10k-images-idx3-ubyte.gz
 
 ```python
 import json
-from opendatalab.cli.ls import _implement_ls
+from opendatalab.cli.ls import implement_ls
 from opendatalab.cli.utility import ContextInfo
 from opendatalab.__version__ import __url__
 
@@ -121,7 +121,7 @@ if __name__ == '__main__':
 
     
     # list demo
-    _implement_ls(ctx, 'MNIST')
+    implement_ls(ctx, 'MNIST')
     print(f'*****'*5) 
     
     """运行结果

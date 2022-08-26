@@ -15,7 +15,7 @@ def implement_logout(obj: ContextInfo) -> None:
     
     if username.strip():
         if click.confirm('Do you want to logout?'):
-            print(f"{username} Logged Out")
+            print(f"{username} logout")
             obj.clean_config()
     else:
-        print("Warning: You haven't login, please login first.")
+        print("Warning: you haven't login.")

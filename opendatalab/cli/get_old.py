@@ -4,7 +4,6 @@
 #
 import logging
 import os
-import sys
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -14,8 +13,6 @@ from typing import List
 import click
 import oss2
 from tqdm import tqdm
-
-from opendatalab.utils import bytes2human
 
 oss2.set_stream_logger(level=logging.CRITICAL)
 
@@ -49,10 +46,13 @@ def download_object(
             global key_to_get_size_map
             if obj_key not in key_to_get_size_map:
                 key_to_get_size_map[obj_key] = 0
-
-            # sys.stdout.flush()
             pbar.update(bytes_consumed - key_to_get_size_map[obj_key])
             key_to_get_size_map[obj_key] = bytes_consumed
+            print(f"********"*5)
+            for k, v in key_to_get_size_map.items():
+                print(f"\t{k} {v} bytes_consumed: {bytes_consumed}")
+            print(f"********"*5)
+
 
     try:
         headers = dict()
@@ -67,7 +67,7 @@ def download_object(
             bucket,
             obj_key,
             filename,
-            multiget_threshold=50 * 1024 * 1024,  # 50M -> 500G(cdn)
+            multiget_threshold=5 * 1024 * 1024 * 1024,  # 50M -> 500G
             part_size=10 * 1024 * 1024,  # 10M
             progress_callback=progress_callback,
             num_threads=4,
@@ -75,13 +75,13 @@ def download_object(
         )
         return True, None
     except oss2.exceptions.InconsistentError as e:
-        # click.secho(f"Resumable download occurs InconsistentError", fg='red')
+        click.secho(f"Resumable download occurs InconsistentError", fg='red')
         return False, e
     except oss2.exceptions.ServerError as e:
-        # click.secho(f"Resumable download occurs ServerError", fg='red')
+        click.secho(f"Resumable download occurs ServerError", fg='red')
         return False, e
     except Exception as e:
-        # click.secho(f"Resumable download occurs Exception", fg='red')
+        click.secho(f"Resumable download occurs Exception", fg='red')
         return False, e
 
 
@@ -108,8 +108,7 @@ def implement_get(obj: ContextInfo, name: str, thread: int, limit_speed: int, co
         sub_dir = ""
 
     client = obj.get_client()
-    info_data_name = client.get_api().get_info(dataset_name)['name']
-    dataset = client.get_dataset(info_data_name)
+    dataset = client.get_dataset(dataset_name)
     prefix = dataset.get_object_key_prefix(compressed)
     bucket = dataset.get_oss_bucket()
 
@@ -143,31 +142,23 @@ def implement_get(obj: ContextInfo, name: str, thread: int, limit_speed: int, co
     has_download = client.get_api().get_download_record(dataset_name)
 
     if not has_download:
-        if click.confirm(f"<<User Service Agreement>>: {service_agreement_url}"
-                         f"\n<<Privacy Policy>>: {private_policy_url}"
-                         f"\n[Warning]: Before downloading, please agree above content."):
+        if click.confirm(f"[Warning]: Before downloading, please agree below content."
+                         f"\nUser Service Agreement, link: {service_agreement_url}"
+                         f"\nPrivacy Policy, link: {private_policy_url}"):
             client.get_api().submit_download_record(dataset_name)
-        else:
-            click.secho('bye~')
-            sys.exit(-1)
+            click.echo("\n")
 
     limit_speed_per_thread = get_oss_traffic_limit(int(limit_speed * 1024 * 8 / thread))
-
     local_dir = Path.cwd().joinpath(dataset_name)
     if click.confirm(f"Do you want to download files into local directory: {local_dir} ?", default=True):
         if not Path(local_dir).exists():
             Path(local_dir).mkdir(parents=True)
             print(f"create local dir: {local_dir}")
-    else:
-        click.secho('bye~')
-        sys.exit(-1)
-
-    pbar = tqdm(total=total_size, unit="B", unit_scale=True, position=0)
 
     error_object_list = get_objects_retry(bucket=bucket,
                                           local_dir=local_dir,
                                           obj_info_list=obj_info_list,
-                                          pbar=pbar,
+                                          total_size=total_size,
                                           limit_speed_per_thread=limit_speed_per_thread,
                                           thread=thread)
 
@@ -175,31 +166,35 @@ def implement_get(obj: ContextInfo, name: str, thread: int, limit_speed: int, co
     while len(error_object_list) > 0:
         global key_to_get_size_map
         bucket = dataset.refresh_oss_bucket()
+        total_size_remain = total_size  # - sum(key_to_get_size_map.values())
         error_object_list = get_objects_retry(bucket=bucket,
                                               local_dir=local_dir,
                                               obj_info_list=error_object_list,
-                                              pbar=pbar,
+                                              total_size=total_size_remain,
                                               limit_speed_per_thread=limit_speed_per_thread,
                                               thread=thread)
-        # print(f"retry times: {index}")
+        print(f"retry times: {index}")
         index = index + 1
-        time.sleep(2)
+        time.sleep(1)
 
         if len(error_object_list) > 0:
             continue
         else:
             break
 
-    pbar.close()
+    if index == 8:
+        print(f"{dataset_name} ,download failure!")
+    else:
+        print(f"{dataset_name} ,download completed!")
 
-    print(f"{dataset_name} ,download completed!")
 
-
-def get_objects_retry(bucket, local_dir, obj_info_list, pbar, limit_speed_per_thread, thread) -> List:
-    # click.secho(f"current timestamp: {int(round(time.time()) * 1000)}\n", fg='green')
+def get_objects_retry(bucket, local_dir, obj_info_list, total_size, limit_speed_per_thread, thread) -> List:
+    pbar = tqdm(total=total_size, unit="B", unit_scale=True)
+    click.secho(f"current timestamp: {int(round(time.time()) * 1000)}", fg='green')
     lock = threading.RLock()
     error_object_list = []
 
+    # real download procedure
     with ThreadPoolExecutor(max_workers=thread) as executor:
         future_to_obj = {
             executor.submit(
@@ -212,5 +207,9 @@ def get_objects_retry(bucket, local_dir, obj_info_list, pbar, limit_speed_per_th
             success, _ = future.result()
             if not success:
                 error_object_list.append(obj)
+
+    pbar.close()
+    # error_object_list = list(dict.fromkeys(error_object_list))
+    print(f"reprocessed obj num: {len(error_object_list)}")
 
     return error_object_list

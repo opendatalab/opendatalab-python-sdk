@@ -12,7 +12,7 @@ import click
 from opendatalab.__version__ import __version__
 
 from opendatalab.cli.config import config as client_config
-from opendatalab.client.client import Client
+from opendatalab.client import Client
 from opendatalab.utils import UUID
 from opendatalab.exception import OpenDataLabError
 
@@ -102,6 +102,9 @@ class ContextInfo:
         self.latest_version = latest_version
         self.check_ret = check_ret
 
+    def get_check_ret(self):
+        return self.check_ret
+
 
 def implement_cli(ctx: click.Context, url: str, token: str) -> None:
     ctx.obj = ContextInfo(url, token)
@@ -135,6 +138,24 @@ def exception_handler(func: _Callable) -> _Callable:
         try:
             func(*args, **kwargs)
         except OpenDataLabError as err:
-            error(str(err))
+            if err.STATUS_CODE == 401:
+                click.secho(f"Error: authentication failure, please login!", err=True, fg='red')
+                pass
+            elif err.STATUS_CODE == 403:
+                click.secho(f"Unable to access. Please visit the dataset homepage!", err=True, fg='red')
+                pass
+            elif err.STATUS_CODE == 404:
+                click.secho(f"Data not exists!", err=True, fg='red')
+                pass
+            elif err.STATUS_CODE == 412:
+                click.secho(f"Access with cdn error!", err=True, fg='red')
+                pass
+            elif err.STATUS_CODE == 500:
+                click.secho(f"Internal server occurs!", err=True, fg='red')
+                pass
+            else:
+                click.secho(f"Error occurs!!!", err=True, fg='red')
+
+            sys.exit(1)
 
     return wrapper  # type: ignore[return-value]

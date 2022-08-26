@@ -2,7 +2,6 @@
 #
 # Copyright 2022 Shanghai AI Lab. Licensed under MIT License.
 #
-import json
 import os
 from pathlib import Path
 

@@ -1,13 +1,12 @@
 #
 # Copyright 2022 Shanghai AI Lab. Licensed under MIT License.
 #
-from opendatalab.cli.utility import ContextInfo, exception_handler
-from opendatalab.client.client import Client
-from opendatalab.utils import bytes2human
-
+import re
+from rich import box
 from rich.console import Console
 from rich.table import Table
-import re
+from opendatalab.cli.utility import ContextInfo, exception_handler
+from opendatalab.utils import bytes2human
 
 
 def rich_content_str(keywords: str, content: str):
@@ -38,30 +37,49 @@ def rich_content_str(keywords: str, content: str):
 
 @exception_handler
 def implement_search(obj: ContextInfo, keywords: str) -> None:
+    """
+    implement dataset search through backend api
+    Args:
+        obj (ContextInfo):
+        keywords (str):
+
+    Returns:
+
+    """
     client = obj.get_client()
     odl_api = client.get_api()
     result_list = odl_api.search_dataset(keywords)
 
     console = Console()
-    table = Table(show_header=True, header_style='bold cyan')
-    table.add_column("Name", style="dim", justify='left')
-    table.add_column("FileSize", style="dim", width=10)
-    table.add_column("Description", justify='full')
-    table.add_column("DownloadCount", width=20, justify='right')
+    table = Table(show_header=True, header_style='bold cyan', box=box.ASCII2)
+    table.add_column("Name", min_width=10, justify='left', overflow='fold')
+    table.add_column("DataType", min_width=8, justify='left', overflow='fold')
+    table.add_column("FileByte", min_width=8, overflow='fold')
+    table.add_column("FileCount", min_width=8, overflow='fold')
+    table.add_column("TaskType", min_width=8, justify='left', overflow='fold')
+    table.add_column("LabelType", min_width=8, justify='left', overflow='fold')
+    table.add_column("ViewCount", min_width=8, justify='left', overflow='fold')
+    table.add_column("Introduction", min_width=20, justify='left', overflow='fold')
 
+    # TODO:
     if result_list:
         for _, res in enumerate(result_list):
             ds_name = res['name']
             ds_name_rich = rich_content_str(keywords=keywords, content=ds_name)
-
-            ds_desc = res['introductionText'][:98] + '...'
+            ds_data_types = ','.join([dmt['name'] for dmt in res['mediaTypes']])
+            ds_file_byte = bytes2human(res['fileBytes'])
+            ds_file_count = res['fileCount']
+            ds_task_types = ','.join([dtt['name'] for dtt in res['taskTypes']])
+            ds_task_types_rich = rich_content_str(keywords=keywords, content=ds_task_types)
+            ds_label_types = ','.join([dlt['name'] for dlt in res['labelTypes']])
+            ds_label_types_rich = rich_content_str(keywords=keywords, content=ds_label_types)
+            ds_view_count = res['viewCount']
+            ds_desc = res['introductionText'][:97] + '...'
             ds_desc_rich = rich_content_str(keywords=keywords, content=ds_desc)
 
-            ds_dw_cnt = res['downloadCount']
-            ds_file_bytes = bytes2human(res['fileBytes'])
-            table.add_row(ds_name_rich, str(ds_file_bytes), ds_desc_rich, str(ds_dw_cnt))
+            table.add_row(ds_name_rich, ds_data_types, str(ds_file_byte), str(ds_file_count), ds_task_types_rich,
+                          ds_label_types_rich, str(ds_view_count), ds_desc_rich, end_section=True)
 
-            # rprint('{:<30}{:<10}{:<100}\t{:<10}\n'.format(ds_name_rich, ds_file_bytes, ds_desc_rich, ds_dw_cnt))
     console.print(table)
 
 
@@ -81,8 +99,6 @@ if __name__ == '__main__':
 
     table.add_row(ds_name_rich, '28.2K', ds_desc_rich, str(100))
 
-    # rprint('{:<30}{:<10}{:<100}\t{:<10}\n'.format('Name', 'FileSize', 'Description', 'DownloadCount'))
-    # rprint('{:<30}{:<10}{:<100}\t{:<10}\n'.format(ds_name_rich, '100 MB', ds_desc_rich, 10))
 
     key = 'COCO'
     name = 'DeCOCO'

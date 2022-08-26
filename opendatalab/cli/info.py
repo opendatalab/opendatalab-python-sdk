@@ -3,6 +3,7 @@
 #
 # Copyright 2022 Shanghai AI Lab. Licensed under MIT License.
 #
+from rich import box
 from rich.console import Console
 from rich.table import Table
 
@@ -12,6 +13,15 @@ from opendatalab.utils import bytes2human
 
 @exception_handler
 def implement_info(obj: ContextInfo, dataset: str) -> None:
+    """
+    implement for displaying dataset info
+    Args:
+        obj (ContextInfo): context object
+        dataset (str): dataset name
+
+    Returns:
+
+    """
     client = obj.get_client()
     odl_api = client.get_api()
     info_data = odl_api.get_info(dataset)
@@ -79,15 +89,13 @@ def implement_info(obj: ContextInfo, dataset: str) -> None:
     }
 
     console = Console()
-    table = Table(show_header=True, header_style='bold cyan')
-    table.add_column("Field", style="dim", justify='left')
-    table.add_column("Content", width=120, justify='full')
+    table = Table(show_header=True, header_style='bold cyan', box=box.ASCII2)
+    table.add_column("Field", width=20, justify='full', overflow='fold')
+    table.add_column("Content", width=120, justify='full', overflow='fold')
 
     for key in info_data.keys():
         val = info_data[key]
         val = "" if not val else val
-        table.add_row(key, val)
-        # click.echo('{:<30}{:<100}'.format(key, val))
-        # print('{:<30}{:<100}'.format(key, val))
+        table.add_row(key, val, end_section=True)
 
     console.print(table)

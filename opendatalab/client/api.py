@@ -3,6 +3,9 @@
 # Copyright 2022 Shanghai AI Lab. Licensed under MIT License.
 #
 import json
+import sys
+
+import click
 import requests
 
 from opendatalab.__version__ import __version__
@@ -29,20 +32,30 @@ class OpenDataLabAPI(object):
         Returns:
             string: json data from response
         """
-        data = {"expires": expires}
-        data = json.dumps(data)
+        data = {"expires": expires, }
         resp = requests.get(
             url=f"{self.host}/api/datasets/{dataset}/sts",
-            data=data,
+            params=data,
             headers={
                 "X-OPENDATALAB-API-TOKEN": self.token,
                 "Cookie": f"opendatalab_session={self.odl_cookie}",
                 "User-Agent": UUID,
-            },
-        )
-        if resp.status_code != 200:
-            raise OpenDataLabError(resp.status_code, resp.text)
+            }, )
 
+        if resp.status_code != 200:
+            if resp.status_code == 404:
+                raise OdlDataNotExistsError()
+            elif resp.status_code == 401:
+                raise OdlAuthError()
+            elif resp.status_code == 403:
+                raise OdlAccessDeniedError()
+            elif resp.status_code == 412:
+                raise OdlAccessCdnError()
+            elif resp.status_code == 500:
+                raise InternalServerError()
+            else:
+                raise RespError(resp_code=resp.status_code, error_msg=resp.reason)
+        # print(f"sts api, headers: {resp.headers}, text: {resp.text}")
         return resp.json()["data"]
 
     @DeprecationWarning
@@ -83,9 +96,13 @@ class OpenDataLabAPI(object):
                      },
         )
         if resp.status_code != 200:
-            raise OpenDataLabError(resp.status_code, resp.text)
+            print(f"{OpenDataLabError(resp.status_code, resp.text)}")
+            sys.exit(-1)
 
         result_list = resp.json()["data"]["list"]
+        if not result_list:
+            click.secho(f"No datasets matched!", fg='red')
+            sys.exit(-1)
 
         return result_list
 
@@ -99,7 +116,8 @@ class OpenDataLabAPI(object):
                      },
         )
         if resp.status_code != 200:
-            raise OpenDataLabError(resp.status_code, resp.text)
+            print(f"{(resp.status_code, resp.text)}")
+            sys.exit(-1)
 
         data = resp.json()['data']
         return data
@@ -113,9 +131,15 @@ class OpenDataLabAPI(object):
                      },
         )
         if resp.status_code != 200:
-            raise OpenDataLabError(resp.status_code, resp.text)
+            click.echo(f"dataset: {dataset}, get info failure, error_code: {resp.status_code}")
+            sys.exit(-1)
+            # OpenDataLabError(resp.status_code, resp.text)
 
         data = resp.json()["data"]
+        if data['id'] == 0:
+            click.secho(f"No dataset: {dataset}", fg='red')
+            sys.exit(-1)
+
         return data
 
     def call_download_log(self, dataset, download_info):
@@ -132,7 +156,46 @@ class OpenDataLabAPI(object):
         )
 
         if resp.status_code != 200:
+            # click.echo(f"dataset: {dataset}, call download log failure, error_code : {resp.status_code}")
+            # sys.exit(-1)
             raise OpenDataLabError(resp.status_code, resp.text)
+
+    def get_download_record(self, dataset):
+        dataset_id = int(self.get_info(dataset)['id'])
+        resp = requests.get(
+            f"{self.host}/api/datasets/{dataset_id}/download",
+            headers={"Content-Type": "application/json",
+                     "Cookie": f"opendatalab_session={self.odl_cookie}",
+                     "User-Agent": f"opendatalab-python-sdk/{__version__}",
+                     },
+        )
+
+        if resp.status_code != 200:
+            raise OpenDataLabError(resp_code=resp.status_code, error_msg=resp.reason)
+
+        has_download = resp.json()["data"]['hasDownload']
+        return has_download
+
+    def submit_download_record(self, dataset):
+        dataset_id = int(self.get_info(dataset)['id'])
+        data = {
+            "expand": ["Other"],
+            "profession": "UNKNOWN",
+            "purpose": ["CLI"]
+        }
+        data = json.dumps(data)
+
+        resp = requests.put(
+            f"{self.host}/api/datasets/{dataset_id}/download",
+            data=data,
+            headers={"Content-Type": "application/json",
+                     "Cookie": f"opendatalab_session={self.odl_cookie}",
+                     "User-Agent": f"opendatalab-python-sdk/{__version__}",
+                     },
+        )
+
+        if resp.status_code != 200:
+            raise OpenDataLabError(resp_code=resp.status_code, error_msg=resp.reason)
 
     def odl_auth(self, account, password):
         code = get_odl_token(account, password)
@@ -140,6 +203,7 @@ class OpenDataLabAPI(object):
             "code": code,
             "redirect": "",
         }
+        # print(f"odl_auth data: {data}")
         data = json.dumps(data)
 
         resp = requests.post(
@@ -150,6 +214,8 @@ class OpenDataLabAPI(object):
 
         if resp.status_code != 200:
             raise OdlAuthError(resp.status_code, resp.text)
+            # error(f"{OdlAuthError(resp.status_code, error_msg=resp.text)}")
+            # sys.exit(-1)
 
         odl_token = resp.json()["data"]["token"]
         config_json = {
@@ -167,7 +233,8 @@ class OpenDataLabAPI(object):
         )
 
         if resp.status_code != 200:
-            raise OpenDataLabError(resp.status_code, resp.text)
+            raise OdlAuthError(resp.status_code, error_msg=resp.text)
+            sys.exit(-1)
 
         version_info = resp.json()["data"]
         return version_info

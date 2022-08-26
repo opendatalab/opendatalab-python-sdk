@@ -4,11 +4,11 @@
 
 """Definitions of OpenDataLab Command-line Interface commands."""
 from functools import partial
+
 import click
 
-from opendatalab.__version__ import __version__, __url__, __date__
+from opendatalab.__version__ import __version__, __url__, __svc__
 from opendatalab.cli.custom import CustomCommand
-from opendatalab.cli.policy import service_agreement_url, private_policy_url
 from opendatalab.cli.utility import ContextInfo
 
 
@@ -35,11 +35,11 @@ def cli(ctx: click.Context, url: str, token: str) -> None:
 command = partial(cli.command, cls=CustomCommand)
 
 
-@command(synopsis=("$ odl version     # show opendatalab version.",))
+@command(synopsis=("$ odl version     # show opendatalab version",))
 def version():
     """Show opendatalab version.
     """
-    click.echo(f"version: odl version: {__version__}, released: {__date__}")
+    click.echo(f"odl version, current: {__version__}, svc: {__svc__}")
 
 
 # @command(synopsis=("$ odl upgrade      # check opendatalab version upgrade.",))
@@ -49,15 +49,6 @@ def upgrade(obj: ContextInfo):
     """
     from opendatalab.cli.upgrade import implement_upgrade
     implement_upgrade(obj)
-    # check_ret = obj.check_ret
-    # latest = obj.latest_version
-    # installed = obj.install_version
-    #
-    # print(f" installed: {installed}, latest: {latest}, check_ret: {check_ret}")
-
-    # if check_ret == 1:
-    #     click.secho(f"[Error]: upgrade needed, please use 'pip install -U opendatalab'", fg='red')
-    #     sys.exit(-1)
 
 
 @command(synopsis=("$ odl logout      # logout current account",))
@@ -72,7 +63,7 @@ def logout(obj: ContextInfo):
     implement_logout(obj)
 
 
-@command(synopsis=("$ odl login -u -p      # login opendatalab with username and password",))
+@command(synopsis=("$ odl login -u -p      # login opendatalab",))
 @click.option(
     "-u",
     "--username",
@@ -85,7 +76,7 @@ def logout(obj: ContextInfo):
     "--password",
     prompt="Password",
     hide_input=True,
-    default="", help="Password for opendatalab."
+    default="", help="Password for opendatalab"
 )
 @click.pass_obj
 def login(obj: ContextInfo, username: str, password: str):
@@ -97,13 +88,13 @@ def login(obj: ContextInfo, username: str, password: str):
         password (str): account password
     """
     from opendatalab.cli.login import implement_login
-    click.echo(f"url: {obj.url}, token: {obj.token}")
+    # click.echo(f"login: url: {obj.url}, token: {obj.token}")
     implement_login(obj, username, password)
 
 
 @command(synopsis=(
-            "$ odl ls dataset              # list dataset files.",
-            "$ odl ls dataset/sub_dir      # list dataset/sub_dir files.",))
+        "$ odl ls dataset              # list dataset files",
+        "$ odl ls dataset/sub_dir      # list dataset/sub_dir files",))
 @click.argument("name", nargs=1)
 @click.pass_obj
 def ls(obj: ContextInfo, name: str) -> None:
@@ -117,7 +108,7 @@ def ls(obj: ContextInfo, name: str) -> None:
     implement_ls(obj, name)
 
 
-@command(synopsis=("$ odl search keywords      # search dataset with keywords.",))
+@command(synopsis=("$ odl search keywords      # search dataset with keywords",))
 @click.argument("keywords", nargs=1)
 @click.pass_obj
 def search(obj: ContextInfo, keywords):
@@ -145,7 +136,7 @@ def info(obj: ContextInfo, name):
     implement_info(obj, name)
 
 
-@command(synopsis=("$ odl get dataset_name      # get dataset files into local.",))
+@command(synopsis=("$ odl get dataset_name      # get dataset files into local",))
 @click.argument("name", nargs=1)
 @click.option(
     "--thread",
@@ -156,13 +147,11 @@ def info(obj: ContextInfo, name):
 )
 @click.option(
     "--limit_speed",
+    "-l",
     default=0,
     help="Download limit speed: KB/s, 0 is unlimited",
     show_default=True,
 )
-@click.confirmation_option(
-    prompt=f"[Warning]: Before downloading, please read and agree below protocols.\nUser Service Agreement, link: {service_agreement_url}\
-\nPrivacy Policy, link: {private_policy_url}\n")
 @click.pass_obj
 def get(obj: ContextInfo, name, thread, limit_speed):
     """Get(Download) dataset files into local path.\f
@@ -170,7 +159,7 @@ def get(obj: ContextInfo, name, thread, limit_speed):
     Args:
         obj (ContextInfo): context info\f
         name (str): dataset name\f
-        thread (int): multil-thread number\f
+        thread (int): multi-thread number\f
         limit_speed (int): limit download speed, for not limit set value to 0
     """
 
@@ -179,4 +168,4 @@ def get(obj: ContextInfo, name, thread, limit_speed):
 
 
 if __name__ == "__main__":
-    cli()  # obj={}
+    cli()

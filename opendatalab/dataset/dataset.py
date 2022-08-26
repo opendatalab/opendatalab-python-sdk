@@ -3,14 +3,16 @@
 # Copyright 2022 Shanghai AI Lab. Licensed under MIT License.
 #
 import http
+import sys
+
+import click
 import oss2
 import requests
+from requests.adapters import HTTPAdapter
 
 from opendatalab.client.api import OpenDataLabAPI
-from opendatalab.utils import parse_url, get_api_token_from_env
-from requests.adapters import HTTPAdapter
-from requests.exceptions import ConnectionError
 from opendatalab.exception import OpenDataLabError
+from opendatalab.utils import parse_url, get_api_token_from_env
 
 
 class Dataset:
@@ -37,7 +39,7 @@ class Dataset:
             self.init_oss_bucket()
             return self.oss_bucket.get_object(object_key)
 
-    def init_oss_bucket(self, expires=900):
+    def init_oss_bucket(self, expires=3600):
         sts = self.open_data_lab_api.get_dataset_sts(self.dataset_name, expires=expires)
 
         if sts:
@@ -54,12 +56,12 @@ class Dataset:
 
     def get_oss_bucket(self) -> oss2.Bucket:
         if self.oss_bucket is None:
-            self.init_oss_bucket(expires=900)
+            self.init_oss_bucket()
         return self.oss_bucket
 
     def refresh_oss_bucket(self) -> oss2.Bucket:
-        self.init_oss_bucket(expires=900)
-        return self.oss_bucket
+        self.init_oss_bucket()
+        return self.get_oss_bucket()
 
     def get_object_key_prefix(self, compressed: bool = True) -> str:
         if compressed:
@@ -74,6 +76,7 @@ class Dataset:
         path_info = sts["path"].replace("oss://", "").split("/")
         bucket_name = path_info[0]
 
+        # use general endpoint
         if len(sts_endpoints) > 0:
             endpoint = sts_endpoints[-1]
             sts_endpoint = endpoint['url']
@@ -85,11 +88,47 @@ class Dataset:
             url_body = url_split_arr[1]
             check_url = url_prefix + url_splitter + bucket_name + "." + url_body + "/check_connected"
             s.mount(check_url, HTTPAdapter(max_retries=0))
+            # print(f"check_url: {check_url}")
 
             try:
-                resp = s.get(check_url, timeout=(0.5, 1))
+                resp = s.get(check_url, timeout=(3, 1)) # 0.5
                 if resp.status_code == http.HTTPStatus.OK:
                     # print(f"check_url: {check_url}")
                     return sts_endpoint, sts_use_cname
             except Exception as e:
-                raise ConnectionError("Exceptions occurs, Please check your network...")
+                click.secho(f"ConnectionError: occurs with url: {check_url}...", fg='red')
+                sys.exit(-1)
+                # raise ConnectionError("Exceptions occurs, Please check your network...")
+
+        # raise ConnectionError("Exceptions occurs, Please check your network...")
+
+        # url_splitter = "://"
+        # for _, endpoint in enumerate(sts_endpoints):
+        #     sts_endpoint = endpoint['url']
+        #     sts_use_cname = endpoint['useCname']
+        #
+        #     url_prefix = ""
+        #     url_body = ""
+        #     if str(sts_endpoint).startswith("https") or str(sts_endpoint).startswith("http"):
+        #         url_split_arr = str(sts_endpoint).split(url_splitter)
+        #         url_prefix = url_split_arr[0]
+        #         url_body = url_split_arr[1]
+        #
+        #     if sts_endpoint.find("cdn") != -1:
+        #         # TODO: cdn optimization
+        #         # continue
+        #         check_url = str(sts_endpoint).rstrip("/") + "/check_connected"
+        #
+        #     else:
+        #         check_url = url_prefix + url_splitter + bucket_name + "." + url_body + "/check_connected"
+        #
+        #     s.mount(check_url, HTTPAdapter(max_retries=0))
+        #     try:
+        #         resp = s.get(check_url, timeout=(0.5, 1))
+        #         if resp.status_code == http.HTTPStatus.OK:
+        #             print(f"check_url: {check_url}")
+        #             return sts_endpoint, sts_use_cname
+        #     except Exception as e:
+        #         pass
+        #
+        # raise ConnectionError("Exceptions occurs, Please check your network...")

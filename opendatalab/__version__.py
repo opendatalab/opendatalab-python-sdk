@@ -8,6 +8,6 @@
 """OpenDataLab python SDK version info."""
 
 __url__ = "http://opendatalab-test.shlab.tech"  # "https://opendatalab.com"
-__version__ = "0.0.1b83"  # "0.0.1b80" 83
-__date__ = '2022-08-16'
+__version__ = "0.0.1b90"  # "0.0.1b86"
+# __date__ = '2022-08-16'
 __svc__ = '1.8'
