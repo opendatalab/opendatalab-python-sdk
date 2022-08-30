@@ -2,6 +2,7 @@
 #
 # Copyright 2022 Shanghai AI Lab. Licensed under MIT License.
 #
+import _thread
 import logging
 import os
 import sys
@@ -10,20 +11,30 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import List
-
 import click
 import oss2
 from tqdm import tqdm
-
-from opendatalab.utils import bytes2human
-
-oss2.set_stream_logger(level=logging.CRITICAL)
-
 from opendatalab.cli.policy import service_agreement_url, private_policy_url
 from opendatalab.cli.utility import ContextInfo, exception_handler
 from opendatalab.exception import OdlDataNotExistsError
 
+oss2.set_stream_logger(level=logging.CRITICAL)
 key_to_get_size_map = {}
+
+
+def handler(dwCtrlType, hook_sight=_thread.interrupt_main):
+    if dwCtrlType == 0:  # CTRL_C_EVENT
+        hook_sight()
+        pid = os.getpid()
+        os.kill(pid, 9)
+        return 1  # don't chain to the next handler
+    return 0  # chain to the next handler
+
+
+if sys.platform == "win32":
+    import win32api
+
+    win32api.SetConsoleCtrlHandler(handler, True)
 
 
 def get_oss_traffic_limit(limit_speed):
@@ -56,12 +67,10 @@ def download_object(
 
     try:
         headers = dict()
-        # headers['ETag'] = obj_info.etag
         if limit_speed > 0:
             headers[oss2.models.OSS_TRAFFIC_LIMIT] = str(limit_speed)
 
         filename = os.path.join(root, obj_key.split("/")[-1])
-        # print(f"Start downloading file: {filename} ...")
 
         oss2.resumable_download(
             bucket,
@@ -70,18 +79,15 @@ def download_object(
             multiget_threshold=50 * 1024 * 1024,  # 50M -> 500G(cdn)
             part_size=10 * 1024 * 1024,  # 10M
             progress_callback=progress_callback,
-            num_threads=4,
+            num_threads=1,
             headers=headers,
         )
         return True, None
     except oss2.exceptions.InconsistentError as e:
-        # click.secho(f"Resumable download occurs InconsistentError", fg='red')
         return False, e
     except oss2.exceptions.ServerError as e:
-        # click.secho(f"Resumable download occurs ServerError", fg='red')
         return False, e
     except Exception as e:
-        # click.secho(f"Resumable download occurs Exception", fg='red')
         return False, e
 
 
@@ -95,9 +101,7 @@ def implement_get(obj: ContextInfo, name: str, thread: int, limit_speed: int, co
         thread (int):
         limit_speed (int):
         compressed (bool):
-
     Returns:
-
     """
     ds_split = name.split("/")
     if len(ds_split) > 1:
@@ -141,7 +145,6 @@ def implement_get(obj: ContextInfo, name: str, thread: int, limit_speed: int, co
     click.echo(f"Scan done, total files: {len(obj_info_list)}, total size: {tqdm.format_sizeof(total_size)}")
 
     has_download = client.get_api().get_download_record(dataset_name)
-
     if not has_download:
         if click.confirm(f"<<User Service Agreement>>: {service_agreement_url}"
                          f"\n<<Privacy Policy>>: {private_policy_url}"
@@ -149,64 +152,54 @@ def implement_get(obj: ContextInfo, name: str, thread: int, limit_speed: int, co
             client.get_api().submit_download_record(dataset_name)
         else:
             click.secho('bye~')
-            sys.exit(-1)
+            sys.exit(1)
 
     limit_speed_per_thread = get_oss_traffic_limit(int(limit_speed * 1024 * 8 / thread))
 
     local_dir = Path.cwd().joinpath(dataset_name)
-    if click.confirm(f"Do you want to download files into local directory: {local_dir} ?", default=True):
+    if click.confirm(f"Download files into local directory: {local_dir} ?", default=True):
         if not Path(local_dir).exists():
             Path(local_dir).mkdir(parents=True)
             print(f"create local dir: {local_dir}")
     else:
         click.secho('bye~')
-        sys.exit(-1)
+        sys.exit(1)
 
     pbar = tqdm(total=total_size, unit="B", unit_scale=True, position=0)
 
-    error_object_list = get_objects_retry(bucket=bucket,
-                                          local_dir=local_dir,
-                                          obj_info_list=obj_info_list,
-                                          pbar=pbar,
-                                          limit_speed_per_thread=limit_speed_per_thread,
-                                          thread=thread)
-
-    index = 1
-    while len(error_object_list) > 0:
+    index = 0
+    is_running = True
+    while is_running:
         global key_to_get_size_map
         bucket = dataset.refresh_oss_bucket()
         error_object_list = get_objects_retry(bucket=bucket,
                                               local_dir=local_dir,
-                                              obj_info_list=error_object_list,
+                                              obj_info_list=obj_info_list,
                                               pbar=pbar,
                                               limit_speed_per_thread=limit_speed_per_thread,
                                               thread=thread)
-        # print(f"retry times: {index}")
         index = index + 1
-        time.sleep(2)
-
+        time.sleep(1)
         if len(error_object_list) > 0:
+            obj_info_list = error_object_list
+            is_running = True
             continue
         else:
+            is_running = False
             break
 
     pbar.close()
-
     print(f"{dataset_name} ,download completed!")
 
 
 def get_objects_retry(bucket, local_dir, obj_info_list, pbar, limit_speed_per_thread, thread) -> List:
-    # click.secho(f"current timestamp: {int(round(time.time()) * 1000)}\n", fg='green')
     lock = threading.RLock()
     error_object_list = []
-
     with ThreadPoolExecutor(max_workers=thread) as executor:
-        future_to_obj = {
-            executor.submit(
-                download_object, bucket, obj, lock, local_dir, pbar, limit_speed_per_thread
-            ): obj
-            for obj in obj_info_list
-        }
+        future_to_obj = {executor.submit(
+            download_object, bucket, obj, lock, local_dir, pbar, limit_speed_per_thread
+        ): obj for obj in obj_info_list}
+
         for future in as_completed(future_to_obj):
             obj = future_to_obj[future]
             success, _ = future.result()

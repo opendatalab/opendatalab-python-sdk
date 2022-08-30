@@ -3,6 +3,7 @@
 #
 
 """Definitions of OpenDataLab Command-line Interface commands."""
+import sys
 from functools import partial
 
 import click
@@ -55,7 +56,6 @@ def upgrade(obj: ContextInfo):
 @click.pass_obj
 def logout(obj: ContextInfo):
     """Logout opendatalab account.\f
-
     Args:
         obj (ContextInfo): context info
     """
@@ -88,7 +88,6 @@ def login(obj: ContextInfo, username: str, password: str):
         password (str): account password
     """
     from opendatalab.cli.login import implement_login
-    # click.echo(f"login: url: {obj.url}, token: {obj.token}")
     implement_login(obj, username, password)
 
 
@@ -127,7 +126,6 @@ def search(obj: ContextInfo, keywords):
 @click.pass_obj
 def info(obj: ContextInfo, name):
     """Print dataset info.\f
-
     Args:
         obj (ContextInfo): context info
         name (str): dataset name
@@ -141,7 +139,7 @@ def info(obj: ContextInfo, name):
 @click.option(
     "--thread",
     "-t",
-    default=10,
+    default=16,
     help="Number of thread for download",
     show_default=True,
 )
@@ -164,7 +162,11 @@ def get(obj: ContextInfo, name, thread, limit_speed):
     """
 
     from opendatalab.cli.get import implement_get
-    implement_get(obj, name, thread, limit_speed)
+    if sys.platform == 'win32':
+        print(f"odl get under win32...")
+        implement_get(obj, name, thread, limit_speed)
+    else:
+        implement_get(obj, name, thread, limit_speed)
 
 
 if __name__ == "__main__":

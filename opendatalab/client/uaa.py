@@ -8,22 +8,15 @@ from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5
 from base64 import b64encode, b64decode
 
-odl_dev_clientId = "qja9jy5wnjyqwvylmeqw"
-odl_prd_clientId = "kmz3bkwzlaa3wrq8pvwa"
+from opendatalab.__version__ import uaa_url_prefix, odl_clientId
 
-uaa_dev_url_prefix = "https://uaa-dev.openmmlab.com/gw/uaa-be"
-uaa_prd_url_prefix = "https://sso.openxlab.org.cn/gw/uaa-be"
-
-api_login = "/api/v1/login/byAccount"
+api_login = "/api/v1/login/byClientSdk"
 api_public_key = "/api/v1/cipher/getPubKey"
 api_user_info = "/api/v1/login/getUserInfo"
 api_auth = "/api/v1/internal/auth"
 
-is_prd_env = False  # False True
 
-clientId = odl_prd_clientId if is_prd_env else odl_dev_clientId
-uaa_url_prefix = uaa_prd_url_prefix if is_prd_env else uaa_dev_url_prefix
-
+clientId = odl_clientId
 public_key_url = uaa_url_prefix + api_public_key
 login_url = uaa_url_prefix + api_login
 user_info_url = uaa_url_prefix + api_user_info
@@ -31,7 +24,7 @@ auth_url = uaa_url_prefix + api_auth
 
 
 def get_public_key():
-    public_param = {'from': "browser", 'type': "login", "clientId": clientId}  # "platform"
+    public_param = {"from": "browser", "type": "login", "clientId": clientId}  # "platform" "browser"
     data = json.dumps(public_param)
     resp = requests.post(url=public_key_url,
                          data=data,
@@ -123,7 +116,6 @@ def get_auth_code(sso_uid):
 
 def get_odl_token(account, password):
     authorization, sso_uid = get_account(account=account, password=password)
-    # sso_uid = get_user_info(authorization=authorization)
     auth_code = None
     if sso_uid:
         auth_code = get_auth_code(sso_uid=sso_uid)
@@ -133,13 +125,3 @@ def get_odl_token(account, password):
         sys.exit(1)
 
     return auth_code
-
-
-def main():
-    account = "wangrui@pjlab.org.cn"  #"191637988@qq.com"  # "191637988@qq.com"  "chenlu@pjlab.org.cn"
-    pw = "pjlab123456" #"qq11111111"  # qq11111111  aaaa
-    get_odl_token(account, pw)
-
-
-if __name__ == "__main__":
-    main()

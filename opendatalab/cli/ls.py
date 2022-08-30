@@ -3,7 +3,6 @@
 #
 import sys
 
-import click
 import oss2
 from rich import box
 from rich.console import Console

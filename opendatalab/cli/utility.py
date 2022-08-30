@@ -65,7 +65,6 @@ class ContextInfo:
                 'user.email': '',
                 'user.token': '',
                 'odl_anonymous': UUID,
-                # 'in.vpc': False
             }
             result = init_config_dict
             with open(self.conf_file, 'w') as f:

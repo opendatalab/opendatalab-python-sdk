@@ -88,47 +88,11 @@ class Dataset:
             url_body = url_split_arr[1]
             check_url = url_prefix + url_splitter + bucket_name + "." + url_body + "/check_connected"
             s.mount(check_url, HTTPAdapter(max_retries=0))
-            # print(f"check_url: {check_url}")
 
             try:
                 resp = s.get(check_url, timeout=(3, 1)) # 0.5
                 if resp.status_code == http.HTTPStatus.OK:
-                    # print(f"check_url: {check_url}")
                     return sts_endpoint, sts_use_cname
             except Exception as e:
                 click.secho(f"ConnectionError: occurs with url: {check_url}...", fg='red')
                 sys.exit(-1)
-                # raise ConnectionError("Exceptions occurs, Please check your network...")
-
-        # raise ConnectionError("Exceptions occurs, Please check your network...")
-
-        # url_splitter = "://"
-        # for _, endpoint in enumerate(sts_endpoints):
-        #     sts_endpoint = endpoint['url']
-        #     sts_use_cname = endpoint['useCname']
-        #
-        #     url_prefix = ""
-        #     url_body = ""
-        #     if str(sts_endpoint).startswith("https") or str(sts_endpoint).startswith("http"):
-        #         url_split_arr = str(sts_endpoint).split(url_splitter)
-        #         url_prefix = url_split_arr[0]
-        #         url_body = url_split_arr[1]
-        #
-        #     if sts_endpoint.find("cdn") != -1:
-        #         # TODO: cdn optimization
-        #         # continue
-        #         check_url = str(sts_endpoint).rstrip("/") + "/check_connected"
-        #
-        #     else:
-        #         check_url = url_prefix + url_splitter + bucket_name + "." + url_body + "/check_connected"
-        #
-        #     s.mount(check_url, HTTPAdapter(max_retries=0))
-        #     try:
-        #         resp = s.get(check_url, timeout=(0.5, 1))
-        #         if resp.status_code == http.HTTPStatus.OK:
-        #             print(f"check_url: {check_url}")
-        #             return sts_endpoint, sts_use_cname
-        #     except Exception as e:
-        #         pass
-        #
-        # raise ConnectionError("Exceptions occurs, Please check your network...")

@@ -20,8 +20,8 @@ if __name__ == '__main__':
     odl_api = client.get_api()
 
     # 0. login with uaa
-    account = "191637988@qq.com"  # "191637988@qq.com"  "chenlu@pjlab.org.cn"
-    pw = "qq11111111"
+    account = "wangrui@pjlab.org.cn" #"191637988@qq.com"  # "191637988@qq.com"  "chenlu@pjlab.org.cn"
+    pw = "pjlab123456" #"qq11111111"
     # _implement_login(ctx, account, pw)
 
     # 1. search demo    
@@ -48,10 +48,10 @@ if __name__ == '__main__':
     # _implement_info(ctx, 'FB15k')
 
     # 5. download
-    implement_get(ctx, "iiii", 4, 0)  #
-    # implement_get(ctx, "MNIST", 4, 0)  #
-    implement_ls(ctx, "OpenXD-SynBody", 4, 0)
-    implement_get(ctx, "123", 4, 0)  #
+    # implement_get(ctx, "iiii", 4, 0)  #
+    implement_get(ctx, "MNIST", 4, 0)  #
+    # implement_ls(ctx, "OpenXD-SynBody", 4, 0)
+    # implement_get(ctx, "123", 4, 0)  #
     # implement_get(ctx, "TAPOS", 4, 0) # /categories/categories.txt
     # implement_get(ctx, '20-MAD', 4, 0) # 1637
     # implement_get(ctx, "ArCOV-19", 4, 0) # 1666,  zip 109M  pass

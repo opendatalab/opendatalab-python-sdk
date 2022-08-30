@@ -60,9 +60,3 @@ class OdlAccessCdnError(RespError):
 
 class InternalServerError(RespError):
     STATUS_CODE = 500
-
-# if __name__ == "__main__":
-#     odl_auth = OdlAuthError(error_msg="auth failure")
-#     odl_not_exist = OdlDataNotExistsError(error_msg="aaa not exits")
-#     print(odl_auth)
-#     print(odl_not_exist)

@@ -133,7 +133,6 @@ class OpenDataLabAPI(object):
         if resp.status_code != 200:
             click.echo(f"dataset: {dataset}, get info failure, error_code: {resp.status_code}")
             sys.exit(-1)
-            # OpenDataLabError(resp.status_code, resp.text)
 
         data = resp.json()["data"]
         if data['id'] == 0:
@@ -156,8 +155,6 @@ class OpenDataLabAPI(object):
         )
 
         if resp.status_code != 200:
-            # click.echo(f"dataset: {dataset}, call download log failure, error_code : {resp.status_code}")
-            # sys.exit(-1)
             raise OpenDataLabError(resp.status_code, resp.text)
 
     def get_download_record(self, dataset):
@@ -203,7 +200,6 @@ class OpenDataLabAPI(object):
             "code": code,
             "redirect": "",
         }
-        # print(f"odl_auth data: {data}")
         data = json.dumps(data)
 
         resp = requests.post(
@@ -214,8 +210,6 @@ class OpenDataLabAPI(object):
 
         if resp.status_code != 200:
             raise OdlAuthError(resp.status_code, resp.text)
-            # error(f"{OdlAuthError(resp.status_code, error_msg=resp.text)}")
-            # sys.exit(-1)
 
         odl_token = resp.json()["data"]["token"]
         config_json = {
@@ -223,7 +217,6 @@ class OpenDataLabAPI(object):
             'user.token': odl_token,
         }
 
-        # print(f"odl_token: {odl_token}")
         return config_json
 
     def check_version(self):

@@ -51,7 +51,6 @@ def implement_upgrade(obj: ContextInfo):
         cur_b_ver = 0
         pass
 
-
     """
     version :
         released: 0.0.1.0 -> 0.0.2.0 ... -> 0.1.0.0
@@ -113,6 +112,3 @@ def implement_upgrade(obj: ContextInfo):
             else:
                 check_ret_code = 0
                 obj.set_check_info(latest_version=latest_res_version, check_ret=check_ret_code)
-
-    # obj.set_check_info(latest_version=latest_res_version, check_ret=check_ret_code)
-    # return installed_version, res_version, check_ret_code
