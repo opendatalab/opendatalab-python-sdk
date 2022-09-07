@@ -31,10 +31,10 @@ def implement_upgrade(obj: ContextInfo):
     # to discuss: if beta False, ignore beta version, set beta_version = 0
     if is_beta_latest:
         latest_beta_version = version_info['betaVersion']
-        latest_res_version = latest_major_version + '.' + latest_minor_version + 'b' + latest_beta_version
+        latest_res_version = latest_major_version + '.' + latest_minor_version + 'b' + str(latest_beta_version)
     else:
         latest_beta_version = 0
-        latest_res_version = latest_major_version + '.' + latest_minor_version + '.' + latest_beta_version
+        latest_res_version = latest_major_version + '.' + latest_minor_version + '.' + str(latest_beta_version)
 
     # installed_svc = __svc__
     installed_version = __version__

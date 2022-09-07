@@ -39,7 +39,7 @@ def get_public_key():
     result = ""
     if resp.status_code == 200:
         result  = resp.json()['data']['pubKey']
-        print(result)
+        # print(result)
     
     return result
 
@@ -75,7 +75,7 @@ def get_account(account ,password):
     authorization = None
     if resp.status_code == 200:
         result  = resp.json()['data']
-        print(result)
+        # print(result)
     
     if result:
         authorization = resp.headers['authorization']
@@ -95,7 +95,7 @@ def get_user_info(authorization):
     
         if resp.status_code == 200:
             result  = resp.json()['data']['ssoUid']
-            print(result)
+            # print(result)
         
     return result
 
@@ -114,7 +114,7 @@ def get_auth_code(ssouid):
                              )
         if resp.status_code == 200:
             result  = resp.json()['data']
-            print(result)
+            # print(result)
     
     return result    
 

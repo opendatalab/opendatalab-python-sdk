@@ -52,7 +52,7 @@ class OpenDataLabAPI(object):
             elif resp.status_code == 412:
                 raise OdlAccessCdnError()
             elif resp.status_code == 500:
-                raise InternalServerError()
+                raise OdlAccessDeniedError()
             else:
                 raise RespError(resp_code=resp.status_code, error_msg=resp.reason)
         # print(f"sts api, headers: {resp.headers}, text: {resp.text}")
@@ -116,7 +116,7 @@ class OpenDataLabAPI(object):
                      },
         )
         if resp.status_code != 200:
-            print(f"{(resp.status_code, resp.text)}")
+            # print(f"{(resp.status_code, resp.text)}")
             sys.exit(-1)
 
         data = resp.json()['data']
@@ -170,15 +170,19 @@ class OpenDataLabAPI(object):
         if resp.status_code != 200:
             raise OpenDataLabError(resp_code=resp.status_code, error_msg=resp.reason)
 
-        has_download = resp.json()["data"]['hasDownload']
-        return has_download
+        data = resp.json()["data"]
+        return data
 
-    def submit_download_record(self, dataset):
+    def submit_download_record(self, dataset, download_data):
         dataset_id = int(self.get_info(dataset)['id'])
+
+        profession = "OTHER" if not download_data['profession'] else download_data['profession']
+        purpose = ["OTHER"] if not download_data['purpose'] else download_data['purpose']
+        expand = ["OTHER"] if not download_data['expand'] else download_data['expand']
         data = {
-            "expand": ["Other"],
-            "profession": "UNKNOWN",
-            "purpose": ["CLI"]
+            "expand": expand,
+            "profession": profession,
+            "purpose": purpose
         }
         data = json.dumps(data)
 

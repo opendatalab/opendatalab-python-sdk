@@ -94,5 +94,5 @@ class Dataset:
                 if resp.status_code == http.HTTPStatus.OK:
                     return sts_endpoint, sts_use_cname
             except Exception as e:
-                click.secho(f"ConnectionError: occurs with url: {check_url}...", fg='red')
+                click.secho(f"ConnectionError occurs, please check network!", fg='red')
                 sys.exit(-1)

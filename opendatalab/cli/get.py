@@ -2,7 +2,6 @@
 #
 # Copyright 2022 Shanghai AI Lab. Licensed under MIT License.
 #
-import _thread
 import logging
 import os
 import sys
@@ -11,9 +10,11 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import List
+
 import click
 import oss2
 from tqdm import tqdm
+
 from opendatalab.cli.policy import service_agreement_url, private_policy_url
 from opendatalab.cli.utility import ContextInfo, exception_handler
 from opendatalab.exception import OdlDataNotExistsError
@@ -22,18 +23,14 @@ oss2.set_stream_logger(level=logging.CRITICAL)
 key_to_get_size_map = {}
 
 
-def handler(dwCtrlType, hook_sight=_thread.interrupt_main):
+def handler(dwCtrlType):
     if dwCtrlType == 0:  # CTRL_C_EVENT
-        hook_sight()
         pid = os.getpid()
         os.kill(pid, 9)
-        return 1  # don't chain to the next handler
-    return 0  # chain to the next handler
 
 
 if sys.platform == "win32":
     import win32api
-
     win32api.SetConsoleCtrlHandler(handler, True)
 
 
@@ -142,14 +139,16 @@ def implement_get(obj: ContextInfo, name: str, thread: int, limit_speed: int, co
         raise OdlDataNotExistsError(error_msg=f"{name} not exists!")
 
     client.get_api().call_download_log(dataset_name, download_info_body)
-    click.echo(f"Scan done, total files: {len(obj_info_list)}, total size: {tqdm.format_sizeof(total_size)}")
+    click.echo(f"Scan done, total files: {len(obj_info_list)}, total size: {tqdm.format_sizeof(total_size,divisor=1024)}")
 
-    has_download = client.get_api().get_download_record(dataset_name)
+    download_data = client.get_api().get_download_record(dataset_name)
+    has_download = download_data['hasDownload']
+
     if not has_download:
         if click.confirm(f"<<User Service Agreement>>: {service_agreement_url}"
                          f"\n<<Privacy Policy>>: {private_policy_url}"
                          f"\n[Warning]: Before downloading, please agree above content."):
-            client.get_api().submit_download_record(dataset_name)
+            client.get_api().submit_download_record(dataset_name, download_data)
         else:
             click.secho('bye~')
             sys.exit(1)
@@ -165,7 +164,7 @@ def implement_get(obj: ContextInfo, name: str, thread: int, limit_speed: int, co
         click.secho('bye~')
         sys.exit(1)
 
-    pbar = tqdm(total=total_size, unit="B", unit_scale=True, position=0)
+    pbar = tqdm(total=total_size, unit="B", unit_divisor=1024, unit_scale=True, position=0)
 
     index = 0
     is_running = True

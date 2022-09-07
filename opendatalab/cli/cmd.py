@@ -139,7 +139,7 @@ def info(obj: ContextInfo, name):
 @click.option(
     "--thread",
     "-t",
-    default=16,
+    default=8,
     help="Number of thread for download",
     show_default=True,
 )
@@ -162,11 +162,7 @@ def get(obj: ContextInfo, name, thread, limit_speed):
     """
 
     from opendatalab.cli.get import implement_get
-    if sys.platform == 'win32':
-        print(f"odl get under win32...")
-        implement_get(obj, name, thread, limit_speed)
-    else:
-        implement_get(obj, name, thread, limit_speed)
+    implement_get(obj, name, thread, limit_speed)
 
 
 if __name__ == "__main__":
