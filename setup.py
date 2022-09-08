@@ -14,6 +14,6 @@ with open("README.md", "r", encoding="utf-8") as fh:
 setuptools.setup(
     version=about["__version__"],
     project_urls={
-        "Bug Tracker": "https://gitlab.shlab.tech/dps/opendatalab-python-sdk/-/tree/dev-datahub/-/issues",
+        "Bug Tracker": "https://github.com/opendatalab/opendatalab-python-sdk/-/tree/main/-/issues",
     },
 )
