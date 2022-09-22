@@ -13,7 +13,7 @@ class Client:
         """opendatalab client
 
         Args:
-            host str: "https://opendatalab.com".
+            host str: "https://opendatalab.org.cn".
             token str: Defaults to "".
             odl_cookie str: Defaults to "".
         """

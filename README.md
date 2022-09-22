@@ -11,7 +11,7 @@
 
 ---
 
-OpenDataLab Python SDK is a python library to access [Opendatalab](https://opendatalab.com/)
+OpenDataLab Python SDK is a python library to access [Opendatalab](https://opendatalab.org.cn/)
 and use open datasets.  
 It provides:
 
@@ -27,7 +27,7 @@ $ pip3 install opendatalab
 ## Usage:
 
 An **account** is needed to access to opendatalab platform.
-Please visit [offical websit](https://opendatalab.com/register) to get the account username and password first.
+Please visit [offical websit](https://opendatalab.org.cn/register) to get the account username and password first.
 
 ### Help
 Show cmd help
@@ -60,7 +60,7 @@ odl version, current: 0.0.2, svc: 1.8
 ```
 
 ### Login
-Login with opendatalab username and password. If you haven't an opendatalab account，please register with link: https://opendatalab.com/
+Login with opendatalab username and password. If you haven't an opendatalab account，please register with link: https://opendatalab.org.cn/
 
 ```cmd
 $ odl login
@@ -178,4 +178,4 @@ if __name__ == '__main__':
 ```
 
 ## Documentation
-More information can be found on the [documentation site](https://opendatalab.com/docs)
+More information can be found on the [documentation site](https://opendatalab.org.cn/docs)
