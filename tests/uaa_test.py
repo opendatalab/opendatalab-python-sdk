@@ -120,8 +120,8 @@ def get_auth_code(ssouid):
 
 
 def main():
-    account = "191637988@qq.com" #"191637988@qq.com"  "chenlu@pjlab.org.cn"
-    pw = "qq11111111"
+    account = "someone@example.com" 
+    pw = "password"
     
     authorization = get_account(account=account, password=pw)
     sso_uid = get_user_info(authorization=authorization) 

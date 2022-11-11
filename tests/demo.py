@@ -18,8 +18,8 @@ if __name__ == '__main__':
     odl_api = client.get_api()
 
     # 0. login with account
-    account = "xxx@pjlab.org.cn"  # your username
-    pw = "xxxx"  # your password
+    account = "someone@example.com"  # your username
+    pw = "password"  # your password
     print(f'*****'*8)
     implement_login(ctx, account, pw)
 
