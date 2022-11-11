@@ -7,7 +7,7 @@ import click
 
 @exception_handler
 def implement_logout(obj: ContextInfo) -> None:
-    
+    ##TODO: add /api/users/sync/logout
     config_content = obj.get_config_content()
     username = ""
     if 'user.email' in config_content.keys():

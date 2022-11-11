@@ -66,18 +66,33 @@ def implement_search(obj: ContextInfo, keywords: str) -> None:
         for _, res in enumerate(result_list):
             ds_name = res['name']
             ds_name_rich = rich_content_str(keywords=keywords, content=ds_name)
-            ds_data_types = ','.join([dmt['name'] for dmt in res['mediaTypes']])
-            ds_file_byte = bytes2human(res['fileBytes'])
-            ds_file_count = res['fileCount']
-            ds_task_types = ','.join([dtt['name'] for dtt in res['taskTypes']])
-            ds_task_types_rich = rich_content_str(keywords=keywords, content=ds_task_types)
-            ds_label_types = ','.join([dlt['name'] for dlt in res['labelTypes']])
-            ds_label_types_rich = rich_content_str(keywords=keywords, content=ds_label_types)
             ds_view_count = res['viewCount']
-            ds_desc = res['introductionText'][:97] + '...'
+            ds_desc = res['introduction']['en'][:97] + '...'
             ds_desc_rich = rich_content_str(keywords=keywords, content=ds_desc)
+
+            ds_attr_info = res['attrs']
+            ds_file_byte = bytes2human(ds_attr_info['fileBytes'])
+            ds_file_count = ds_attr_info['fileCount']
+
+            ds_data_types = _get_complex_types_str(ds_attr_info, 'mediaTypes')
+            ds_task_types = _get_complex_types_str(ds_attr_info, 'taskTypes')
+            ds_label_types = _get_complex_types_str(ds_attr_info, 'labelTypes')
+
+            ds_task_types_rich = rich_content_str(keywords=keywords, content=ds_task_types)
+            ds_label_types_rich = rich_content_str(keywords=keywords, content=ds_label_types)
 
             table.add_row(ds_name_rich, ds_data_types, str(ds_file_byte), str(ds_file_count), ds_task_types_rich,
                           ds_label_types_rich, str(ds_view_count), ds_desc_rich, end_section=True)
 
     console.print(table)
+
+
+def _get_complex_types_str(ds_attr_info, type_name):
+    if not (ds_attr_info or type_name):
+        return ""
+
+    if type_name in ds_attr_info.keys():
+        type_list = ds_attr_info[type_name]
+        return ','.join([d['name']['en'] for d in type_list])
+    else:
+        return ""

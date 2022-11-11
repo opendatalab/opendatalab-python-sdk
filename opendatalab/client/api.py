@@ -58,42 +58,19 @@ class OpenDataLabAPI(object):
         # print(f"sts api, headers: {resp.headers}, text: {resp.text}")
         return resp.json()["data"]
 
-    @DeprecationWarning
-    def login(self, username: str, password: str):
-        data = {
-            "email": username,
-            "password": password,
-        }
-        data = json.dumps(data)
-        resp = requests.post(
-            f"{self.host}/api/users/login",
-            data=data,
-            headers={"Content-Type": "application/json"},
-        )
-        if resp.status_code != 200:
-            raise OdlAuthError(resp.status_code, resp.text)
-
-        cookies_dict = requests.utils.dict_from_cookiejar(resp.cookies)
-
-        if 'opendatalab_session' in cookies_dict.keys():
-            opendatalab_session = cookies_dict['opendatalab_session']
-        else:
-            raise OpenDataLabError(resp.status_code, "No opendatalab_session")
-
-        config_json = {
-            'user.email': username,
-            'user.token': opendatalab_session,
-        }
-
-        return config_json
-
     def search_dataset(self, keywords):
-        resp = requests.get(
-            f"{self.host}/api/datasets/?pageSize=25&keywords={keywords}",
+        resp = requests.post(  # f"{self.host}/api/datasets/?pageSize=25&keywords={keywords}",
+            f"{self.host}/api/datasets/list",
             headers={"X-OPENDATALAB-API-TOKEN": self.token,
                      "Cookie": f"opendatalab_session={self.odl_cookie}",
                      "User-Agent": f"opendatalab-python-sdk/{__version__}",
                      },
+            data=json.dumps({
+                "backend": False,
+                "keywords": keywords,
+                "pageSize": 25,
+                "state": ["online"],
+            })
         )
         if resp.status_code != 200:
             print(f"{OpenDataLabError(resp.status_code, resp.text)}")
@@ -124,7 +101,7 @@ class OpenDataLabAPI(object):
 
     def get_info(self, dataset):
         resp = requests.get(
-            f"{self.host}/api/datasets/{dataset}",
+            f"{self.host}/api/datasets/{dataset}?backend=false",
             headers={"X-OPENDATALAB-API-TOKEN": self.token,
                      "Cookie": f"opendatalab_session={self.odl_cookie}",
                      "User-Agent": f"opendatalab-python-sdk/{__version__}",

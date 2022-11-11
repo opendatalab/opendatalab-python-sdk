@@ -18,17 +18,17 @@ if __name__ == '__main__':
     odl_api = client.get_api()
 
     # 0. login with account
-    # account = "xxxxx"  # your username
-    # pw = "xxxxx"  # your password
-    # print(f'*****'*8)
-    # implement_login(ctx, account, pw)
+    account = "xxx@pjlab.org.cn"  # your username
+    pw = "xxxx"  # your password
+    print(f'*****'*8)
+    implement_login(ctx, account, pw)
 
     # 1. search demo    
-    res_list = odl_api.search_dataset("coco")
+    res_list = odl_api.search_dataset("mnist")
     # for index, res in enumerate(res_list):
     #     print(f"-->index: {index}, result: {res['name']}")
 
-    # implement_search("coco")
+    implement_search(ctx, "coco")
     print(f'*****'*8)
 
     # 2. list demo
@@ -44,11 +44,12 @@ if __name__ == '__main__':
 
     # 4. get dataset info
     implement_info(ctx, 'FB15k')
+    implement_info(ctx, 'COCO_1')
 
     # 5. download
     # get all files of dataset
     # implement_get(ctx, "MNIST", 4, 0)
 
     # get partial files of dataset
-    implement_get(ctx, "GOT-10k/data/test_data.zip", 4, 0) # 139, zip 1.16G GOT-10k
+    implement_get(ctx, "MNIST", 4, 0)
     print(f'*****' * 5)
