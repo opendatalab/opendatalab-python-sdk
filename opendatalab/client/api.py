@@ -64,6 +64,7 @@ class OpenDataLabAPI(object):
             headers={"X-OPENDATALAB-API-TOKEN": self.token,
                      "Cookie": f"opendatalab_session={self.odl_cookie}",
                      "User-Agent": f"opendatalab-python-sdk/{__version__}",
+                     "Content-Type": "application/json"
                      },
             data=json.dumps({
                 "backend": False,
@@ -90,6 +91,7 @@ class OpenDataLabAPI(object):
             headers={"X-OPENDATALAB-API-TOKEN": self.token,
                      "Cookie": f"opendatalab_session={self.odl_cookie}",
                      "User-Agent": f"opendatalab-python-sdk/{__version__}",
+                     "Content-Type": "application/json"
                      },
         )
         if resp.status_code != 200:
@@ -105,6 +107,7 @@ class OpenDataLabAPI(object):
             headers={"X-OPENDATALAB-API-TOKEN": self.token,
                      "Cookie": f"opendatalab_session={self.odl_cookie}",
                      "User-Agent": f"opendatalab-python-sdk/{__version__}",
+                     "Content-Type": "application/json"
                      },
         )
         if resp.status_code != 200:
@@ -128,6 +131,7 @@ class OpenDataLabAPI(object):
             headers={"Content-Type": "application/json",
                      "Cookie": f"opendatalab_session={self.odl_cookie}",
                      "User-Agent": f"opendatalab-python-sdk/{__version__}",
+                     "Content-Type": "application/json"
                      },
         )
 
@@ -141,6 +145,7 @@ class OpenDataLabAPI(object):
             headers={"Content-Type": "application/json",
                      "Cookie": f"opendatalab_session={self.odl_cookie}",
                      "User-Agent": f"opendatalab-python-sdk/{__version__}",
+                     "Content-Type": "application/json"
                      },
         )
 
@@ -169,6 +174,7 @@ class OpenDataLabAPI(object):
             headers={"Content-Type": "application/json",
                      "Cookie": f"opendatalab_session={self.odl_cookie}",
                      "User-Agent": f"opendatalab-python-sdk/{__version__}",
+                     "Content-Type": "application/json"
                      },
         )
 
