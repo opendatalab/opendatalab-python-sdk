@@ -8,7 +8,7 @@
 """OpenDataLab python SDK version info."""
 
 __url__ = "https://opendatalab.org.cn"
-__version__ = "0.0.3"
+__version__ = "0.0.4"
 __svc__ = '2.0'
 odl_clientId = "kmz3bkwzlaa3wrq8pvwa"
 uaa_url_prefix = "https://sso.openxlab.org.cn/gw/uaa-be"
