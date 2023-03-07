@@ -2,9 +2,12 @@
 # Copyright 2022 Shanghai AI Lab. Licensed under MIT License.
 #
 import re
+import time
+
 from rich import box
 from rich.console import Console
 from rich.table import Table
+
 from opendatalab.cli.utility import ContextInfo, exception_handler
 from opendatalab.utils import bytes2human
 
@@ -48,8 +51,11 @@ def implement_search(obj: ContextInfo, keywords: str) -> None:
     """
     client = obj.get_client()
     odl_api = client.get_api()
+    import time
+    time_start =time.time()
     result_list = odl_api.search_dataset(keywords)
-
+    time_end = time.time()
+    print('-------------time_consuming--------', time_end - time_start, 's')
     console = Console()
     table = Table(show_header=True, header_style='bold cyan', box=box.ASCII2)
     table.add_column("Name", min_width=10, justify='left', overflow='fold')

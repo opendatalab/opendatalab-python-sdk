@@ -3,8 +3,8 @@
 #
 import sys
 
-import oss2
 from rich import box
+from rich import print as rprint
 from rich.console import Console
 from rich.table import Table
 
@@ -14,7 +14,7 @@ from opendatalab.utils import bytes2human
 
 
 @exception_handler
-def implement_ls(obj: ContextInfo, dataset: str) -> None:
+def implement_ls(obj: ContextInfo, dataset: str):
     """
     implementation for show dataset files
     Args:
@@ -33,27 +33,19 @@ def implement_ls(obj: ContextInfo, dataset: str) -> None:
         sub_dir = ""
 
     client = obj.get_client()
-    info_data_name = client.get_api().get_info(dataset_name)['name']
-    dataset_instance = client.get_dataset(dataset_name=info_data_name)
+    info_dataset_name = client.get_api().get_info(dataset_name)['name']
+    dataset_instance = client.get_dataset(dataset_name=info_dataset_name)
 
-    bucket = dataset_instance.get_oss_bucket()
-    prefix = dataset_instance.get_object_key_prefix(compressed=True)
-
+    dataset_res_dict = client.get_api().get_dataset_files(dataset_name=info_dataset_name)
+    
+    # generate output info dict
     object_info_dict = {}
     total_files, total_size = 0, 0
-    for info in oss2.ObjectIteratorV2(bucket, prefix):
-        if not info.is_prefix() and not info.key.endswith("/"):
-            file_name = "/".join(info.key.split("/")[2:])
-            if not sub_dir:
-                object_info_dict[file_name] = bytes2human(info.size)
-                total_files = total_files + 1
-                total_size = total_size + info.size
-            elif sub_dir and file_name.startswith(sub_dir):
-                object_info_dict[file_name] = bytes2human(info.size)
-                total_files = total_files + 1
-                total_size = total_size + info.size
-            else:
-                pass
+    total_files = dataset_res_dict['total']
+    for info in dataset_res_dict['list']:
+        object_info_dict[info['path']] = bytes2human(info['size'])
+        total_size += info['size']
+
 
     if len(object_info_dict) == 0:
         raise OdlAccessDeniedError()
@@ -66,8 +58,7 @@ def implement_ls(obj: ContextInfo, dataset: str) -> None:
     table.add_column("File Name", min_width=20, justify='left')
     table.add_column("Size", width=12, justify='left')
 
-    print(f"total: {total_files}, size: {bytes2human(total_size)}")
+    print(f"Total file count: {total_files}, Size: {bytes2human(total_size)}")
     for key, val in sorted_object_info_dict.items():
         table.add_row(key, val, end_section=True)
-
     console.print(table)

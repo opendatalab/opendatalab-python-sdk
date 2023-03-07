@@ -19,7 +19,78 @@ class OpenDataLabAPI(object):
         self.host = host
         self.token = token
         self.odl_cookie = odl_cookie
+        
+    def get_dataset_files(self, dataset_name:str):
+        """ https request retrieve dataset files
+        Args:
+            dataset (str): dataset name
+            
+        Returns:
+            result_dict: 2 keys:
+                  dict['list']:contain list of files 
+                  dict['total']:files count.
+        """
+        
+        header_dict = {"X-OPENDATALAB-API-TOKEN": self.token,
+                "Cookie": f"opendatalab_session={self.odl_cookie}",
+                "User-Agent": UUID,
+                "accept" : "application/json"
+                }
+        data = {"recursive": True}
+        resp = requests.get(
+            url = f"{self.host}/api/datasets/{dataset_name}/files",
+            params = data,
+            headers = header_dict
+        )
+        if resp.status_code != 200:
+            if resp.status_code == 404:
+                raise OdlDataNotExistsError()
+            elif resp.status_code == 401:
+                raise OdlAuthError()
+            elif resp.status_code == 403:
+                raise OdlAccessDeniedError()
+            elif resp.status_code == 412:
+                raise OdlAccessCdnError()
+            elif resp.status_code == 500:
+                raise OdlAccessDeniedError()
+            else:
+                raise RespError(resp_code=resp.status_code, error_msg=resp.reason)
+        
+        result_dict = resp.json()['data']
+        
+        return result_dict
+    
+    def get_dataset_download_urls(self, dataset_id:int, dataset_list:list):
+        """get Dataset segments downloadable url
 
+        Args:
+            dataset (str): dataset name
+            dataset_list (list): list of dict contain segment size and name
+            
+        Returns:
+            download_url_list: list of dict contain segment name and executable url.
+        """
+        resp = requests.post(
+            f"{self.host}/api/track/datasets/download/{dataset_id}",
+            data = json.dumps(dataset_list),
+            headers={
+                    "Content-Type": "application/json",
+                    "Cookie": f"opendatalab_session={self.odl_cookie}",
+                    "User-Agent": f"opendatalab-python-sdk/{__version__}",
+                    "accept": "application/json"
+            }
+        )
+        if resp.status_code != 200:
+            print(f"{OpenDataLabError(resp.status_code, resp.text)}")
+            sys.exit(-1)
+        
+        download_url_list = resp.json()['data']
+        if not download_url_list:
+            click.secho(f"No datasets matched!", fg='red')
+            sys.exit(-1)
+        
+        return download_url_list
+    
     def get_dataset_sts(self, dataset, expires=900):
         """Get dataset sts by dataset_name
         Args:
@@ -183,6 +254,7 @@ class OpenDataLabAPI(object):
 
     def odl_auth(self, account, password):
         code = get_odl_token(account, password)
+        print(code)
         data = {
             "code": code,
             "redirect": "",
@@ -194,7 +266,7 @@ class OpenDataLabAPI(object):
             data=data,
             headers={"Content-Type": "application/json"},
         )
-
+        print(resp.status_code)
         if resp.status_code != 200:
             raise OdlAuthError(resp.status_code, resp.text)
 

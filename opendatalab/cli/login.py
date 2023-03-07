@@ -2,6 +2,7 @@
 # Copyright 2022 Shanghai AI Lab. Licensed under MIT License.
 #
 import sys
+
 from opendatalab.cli.utility import ContextInfo, exception_handler
 
 
@@ -18,4 +19,3 @@ def implement_login(obj: ContextInfo, username: str, password: str) -> None:
         sys.exit(-1)
 
     print(f"Login successfully as {username}")
-

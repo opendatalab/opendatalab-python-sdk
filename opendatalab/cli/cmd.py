@@ -8,7 +8,7 @@ from functools import partial
 
 import click
 
-from opendatalab.__version__ import __version__, __url__, __svc__
+from opendatalab.__version__ import __svc__, __url__, __version__
 from opendatalab.cli.custom import CustomCommand
 from opendatalab.cli.utility import ContextInfo
 
@@ -92,8 +92,7 @@ def login(obj: ContextInfo, username: str, password: str):
 
 
 @command(synopsis=(
-        "$ odl ls dataset              # list dataset files",
-        "$ odl ls dataset/sub_dir      # list dataset/sub_dir files",))
+        "$ odl ls dataset              # list dataset files"))
 @click.argument("name", nargs=1)
 @click.pass_obj
 def ls(obj: ContextInfo, name: str) -> None:
@@ -137,32 +136,23 @@ def info(obj: ContextInfo, name):
 @command(synopsis=("$ odl get dataset_name      # get dataset files into local",))
 @click.argument("name", nargs=1)
 @click.option(
-    "--thread",
-    "-t",
-    default=8,
-    help="Number of thread for download",
-    show_default=True,
-)
-@click.option(
-    "--limit_speed",
-    "-l",
-    default=0,
-    help="Download limit speed: KB/s, 0 is unlimited",
+    "--conn",
+    "-c",
+    default=5,
+    help="The number of parallel download slots",
     show_default=True,
 )
 @click.pass_obj
-def get(obj: ContextInfo, name, thread, limit_speed):
+def get(obj: ContextInfo, name, conn = 5):
     """Get(Download) dataset files into local path.\f
-
     Args:
         obj (ContextInfo): context info\f
         name (str): dataset name\f
-        thread (int): multi-thread number\f
-        limit_speed (int): limit download speed, for not limit set value to 0
+        conn (int): The number of parallel download slots\f
     """
 
     from opendatalab.cli.get import implement_get
-    implement_get(obj, name, thread, limit_speed)
+    implement_get(obj, name, conn)
 
 
 if __name__ == "__main__":

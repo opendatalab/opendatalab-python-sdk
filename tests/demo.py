@@ -18,8 +18,8 @@ if __name__ == '__main__':
     odl_api = client.get_api()
 
     # 0. login with account
-    account = "someone@example.com"  # your username
-    pw = "password"  # your password
+    account = "18639553699"  # your username
+    pw = "wxj8023hh!"  # your password
     print(f'*****'*8)
     implement_login(ctx, account, pw)
 
@@ -35,12 +35,6 @@ if __name__ == '__main__':
     implement_ls(ctx, 'TAO')
     print(f'*****' * 8)
 
-    # 3. read file online demo
-    dataset = client.get_dataset('FB15k')
-    with dataset.get('meta/info.json', compressed=False) as fd:
-        content = json.load(fd)
-        print(f"{content}")
-    print(f'*****'*8)
 
     # 4. get dataset info
     implement_info(ctx, 'FB15k')
@@ -51,5 +45,5 @@ if __name__ == '__main__':
     # implement_get(ctx, "MNIST", 4, 0)
 
     # get partial files of dataset
-    implement_get(ctx, "MNIST", 4, 0)
+    implement_get(ctx, "MNIST")
     print(f'*****' * 5)

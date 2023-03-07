@@ -1,14 +1,16 @@
-import requests
 import json
 import time
-from Crypto.PublicKey import RSA
-from Crypto.Cipher import PKCS1_v1_5
-from base64 import b64encode, b64decode
+from base64 import b64decode, b64encode
 
-odl_dev_clientId = "qja9jy5wnjyqwvylmeqw"
+import requests
+from Crypto.Cipher import PKCS1_v1_5
+from Crypto.PublicKey import RSA
+
+odl_dev_clientId = "ypkl8bwo0eb5ao1b96no"
 odl_prd_clientId = "kmz3bkwzlaa3wrq8pvwa"
 
-uaa_dev_url_prefix = "https://uaa-dev.openmmlab.com/gw/uaa-be"
+
+uaa_dev_url_prefix = "https://sso.staging.openxlab.org.cn/gw/uaa-be"
 uaa_prd_url_prefix = "https://sso.openxlab.org.cn/gw/uaa-be"
 
 api_login = "/api/v1/login/byAccount"
@@ -39,7 +41,7 @@ def get_public_key():
     result = ""
     if resp.status_code == 200:
         result  = resp.json()['data']['pubKey']
-        # print(result)
+        print(result)
     
     return result
 
@@ -75,7 +77,7 @@ def get_account(account ,password):
     authorization = None
     if resp.status_code == 200:
         result  = resp.json()['data']
-        # print(result)
+        print(result)
     
     if result:
         authorization = resp.headers['authorization']
@@ -95,7 +97,7 @@ def get_user_info(authorization):
     
         if resp.status_code == 200:
             result  = resp.json()['data']['ssoUid']
-            # print(result)
+            print(result)
         
     return result
 
@@ -114,14 +116,14 @@ def get_auth_code(ssouid):
                              )
         if resp.status_code == 200:
             result  = resp.json()['data']
-            # print(result)
+            print(result)
     
     return result    
 
 
 def main():
-    account = "someone@example.com" 
-    pw = "password"
+    account = "18639553699" 
+    pw = "wxj8023hh!"
     
     authorization = get_account(account=account, password=pw)
     sso_uid = get_user_info(authorization=authorization) 
@@ -129,6 +131,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()    
-    
-
+    main()
+    # print('!!!')

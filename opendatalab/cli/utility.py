@@ -4,17 +4,18 @@
 #
 
 """OpenDataLab CLI utility functions."""
-import sys
 import json
+import sys
 from functools import wraps
 from typing import Any, Callable, TypeVar
-import click
-from opendatalab.__version__ import __version__
 
+import click
+
+from opendatalab.__version__ import __version__
 from opendatalab.cli.config import config as client_config
 from opendatalab.client import Client
-from opendatalab.utils import UUID
 from opendatalab.exception import OpenDataLabError
+from opendatalab.utils import UUID
 
 _Callable = TypeVar("_Callable", bound=Callable[..., None])
 
