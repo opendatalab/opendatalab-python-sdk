@@ -36,7 +36,7 @@ def implement_ls(obj: ContextInfo, dataset: str):
     info_dataset_name = client.get_api().get_info(dataset_name)['name']
     dataset_instance = client.get_dataset(dataset_name=info_dataset_name)
 
-    dataset_res_dict = client.get_api().get_dataset_files(dataset_name=info_dataset_name)
+    dataset_res_dict = client.get_api().get_dataset_files(dataset_name=info_dataset_name, prefix = sub_dir)
     
     # generate output info dict
     object_info_dict = {}

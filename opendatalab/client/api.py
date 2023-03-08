@@ -20,7 +20,7 @@ class OpenDataLabAPI(object):
         self.token = token
         self.odl_cookie = odl_cookie
         
-    def get_dataset_files(self, dataset_name:str):
+    def get_dataset_files(self, dataset_name:str, prefix:str):
         """ https request retrieve dataset files
         Args:
             dataset (str): dataset name
@@ -36,7 +36,8 @@ class OpenDataLabAPI(object):
                 "User-Agent": UUID,
                 "accept" : "application/json"
                 }
-        data = {"recursive": True}
+        data = {"recursive": True,
+                "prefix":prefix}
         resp = requests.get(
             url = f"{self.host}/api/datasets/{dataset_name}/files",
             params = data,
