@@ -76,9 +76,7 @@ class Downloader:
             self.prefix = os.path.dirname(filename)
         self.url = url
         self.download_dir = download_dir
-        if os.path.exists(os.path.join(self.download_dir, self.prefix, self.filename)):
-            self.__whistleblower('target already exists')
-            self.stop()
+        
 
         # self.download_dir = os.path.join(download_dir, f".{os.sep}odl{os.sep}")
         self.blocks_num = blocks_num
