@@ -136,24 +136,29 @@ def info(obj: ContextInfo, name):
 @command(synopsis=("$ odl get dataset_name      # get dataset files into local",))
 @click.argument("name", nargs=1)
 @click.option(
-    "--conn",
-    "-c",
-    default=5,
-    help="The number of parallel download slots",
-    show_default=True,
+    "--dest",
+    "-d",
+    default='',
+    help="Desired dataset store path",
+    show_default=True
+)
+@click.option(
+    "--workers",
+    "-w",
+    default = 8,
+    help= "number of workers",
+    show_default = True
 )
 @click.pass_obj
-def get(obj: ContextInfo, name, conn = 5):
+def get(obj: ContextInfo, name, dest, workers):
     """Get(Download) dataset files into local path.\f
     Args:
         obj (ContextInfo): context info\f
         name (str): dataset name\f
-        conn (int): The number of parallel download slots\f
+        destination(str): desired dataset store path\f   
     """
-
+    
     from opendatalab.cli.get import implement_get
-    implement_get(obj, name, conn)
-
-
+    implement_get(obj, name, dest, workers)
 if __name__ == "__main__":
     cli()
