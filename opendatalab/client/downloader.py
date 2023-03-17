@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import glob
+import hashlib
 import os
 import sys
 import threading
@@ -343,6 +344,17 @@ class Downloader:
     def __whistleblower(self, saying: str):
         sys.stdout.write(saying)
 
+    def md5(self):
+        chunk_size = 1024 * 1024
+        filename = f"{os.path.join(self.download_dir, self.prefix, self.filename)}"
+        md5 = hashlib.md5()
+        with open(filename, "rb") as f:
+            data = f.read(chunk_size)
+            while data:
+                md5.update(data)
+                data = f.read(chunk_size)
+        return md5.hexdigest()
+    
     def clear(self):
         for filename in self.__get_cache_filenames():
             os.remove(filename)

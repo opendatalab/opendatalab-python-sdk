@@ -39,15 +39,20 @@ def implement_get(obj: ContextInfo, name: str, destination:str, num_workers:int)
     Returns:
     """
     ds_split = name.split("/")
+    if ds_split[-1] == '':
+        ds_split.pop()
+    dataset_name = ds_split[0]
+    single_file_flag = False
     if len(ds_split) > 1:
-        dataset_name = ds_split[0]
+        # if a single file
+        if ('.' in ds_split[-1]):
+            if len(ds_split) == 2:
+                single_file_flag = True
         sub_dir = "/".join(ds_split[1:])
     else:
         dataset_name = name
         sub_dir = ""
-    
-    # print(name, ds_split ,dataset_name, sub_dir)
-    
+        
     client = obj.get_client()
     data_info = client.get_api().get_info(dataset_name)
     info_dataset_name = data_info['name']
@@ -55,33 +60,22 @@ def implement_get(obj: ContextInfo, name: str, destination:str, num_workers:int)
     
     dataset_res_dict = client.get_api().get_dataset_files(dataset_name=info_dataset_name,
                                                           prefix = sub_dir)
-    # print(dataset_res_dict)
     
+    total_object = dataset_res_dict['total']
+
     # obj list constuct
     obj_info_list = []
     for info in dataset_res_dict['list']:
         curr_dict = {}
         if not info['isDir']:
             curr_dict['size'] = info['size']
-            curr_dict['name'] = os.path.join(sub_dir,info['path'])
+            if single_file_flag:
+                curr_dict['name'] = info['path']
+            elif len(sub_dir.split('/')) > 1:
+                curr_dict['name'] = sub_dir
+            else:
+                curr_dict['name'] = os.path.join(sub_dir,info['path'])
             obj_info_list.append(curr_dict)
-
-    # if not sub_dir:
-    # print(obj_info_list, sub_dir)
-    download_urls_list = client.get_api().get_dataset_download_urls(
-                                                            dataset_id=info_dataset_id, 
-                                                            dataset_list=obj_info_list)
-    # print(obj_info_list)
-    print('___________________________________________________')
-    
-    
-    url_list = []
-    item_list = []
-    for item in download_urls_list:
-        url_list.append(item['url'])
-        item_list.append(item['name'])
-    
-    # print(url_list[0], item_list[0])
 
     local_dir = destination
     
@@ -104,26 +98,28 @@ def implement_get(obj: ContextInfo, name: str, destination:str, num_workers:int)
     else:
         click.secho('See you next time~!')
         sys.exit(1)
-        
-    # print(url_list[0], item_list[0])
-    ########################################################################
 
-    with tqdm(total = len(url_list)) as pbar:
-        for idx in range(len(url_list)):
-            if len(item_list[idx].split('/')) == 1:
-                filename = item_list[idx]
-                prefix = ''
-            else:
-                filename = item_list[idx].split('/')[-1]
-                prefix = os.path.dirname(item_list[idx])
 
-            click.echo(f"Downloading No.{idx+1} of total {len(url_list)} files\n")
-            if os.path.exists(os.path.join(destination,info_dataset_name, prefix,filename)):
+    with tqdm(total = total_object) as pbar:
+        for idx in range(total_object):
+            dataset_seg_list = []
+            dataset_seg_list.append(obj_info_list[idx])
+            download_urls_list = client.get_api().get_dataset_download_urls(
+                                                            dataset_id=info_dataset_id, 
+                                                            dataset_list=dataset_seg_list)
+            url_download = download_urls_list[0]['url']
+            filename = download_urls_list[0]['name']
+            # print(url_download, filename)
+            click.echo(f"Downloading No.{idx+1} of total {total_object} files")
+            if os.path.exists((os.path.join(destination, info_dataset_name, filename))):
+                # print(os.path.join(destination, info_dataset_name, filename))
                 click.echo('target already exists, jumping to next!')
+                pbar.update(1)
                 continue
-            downloader.Downloader(url = url_list[idx], 
-                                  filename=item_list[idx], 
+            downloader.Downloader(url = url_download, 
+                                  filename= filename, 
                                   download_dir = os.path.join(destination, info_dataset_name), 
                                   blocks_num= num_workers).start()
             pbar.update(1)
+            
     click.echo(f"\nDownload Complete!")

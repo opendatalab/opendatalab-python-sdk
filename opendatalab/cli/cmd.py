@@ -155,7 +155,8 @@ def get(obj: ContextInfo, name, dest, workers):
     Args:
         obj (ContextInfo): context info\f
         name (str): dataset name\f
-        destination(str): desired dataset store path\f   
+        destination(str): desired dataset store path\f
+        wokers(str): number of workers\f
     """
     
     from opendatalab.cli.get import implement_get
