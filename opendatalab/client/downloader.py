@@ -82,7 +82,8 @@ class Downloader:
         # self.download_dir = os.path.join(download_dir, f".{os.sep}odl{os.sep}")
         self.blocks_num = blocks_num
         self.file_size = self.__get_size()
-
+        if self.file_size <= 1:
+            return
         # make download dir
         if not os.path.exists(self.download_dir):
             os.makedirs(self.download_dir)
@@ -300,7 +301,7 @@ class Downloader:
                 readable_speed = self.__get_readable_size(speed)
                 # print(s,t,readable_speed)
                 percentage = self.__download_record[-1]["size"] / self.file_size * 100
-                status_msg = f"\r[Download Info] {percentage:.2f} % | {readable_speed}/s | workers: {len(self.workers)} | {(time.time() - self.start_since):.0f}s"
+                status_msg = f"\r[Current File Download Info] File Progress: {percentage:.2f} % | Speed: {readable_speed}/s | Number of Workers: {len(self.workers)} | Time Elapsed: {(time.time() - self.start_since):.0f}s | ETA: {((self.file_size- dwn_size)/speed):.2f}s"
                 self.__whistleblower(status_msg)
                 # speed monitor
                 maxspeed = max(maxspeed, speed)
