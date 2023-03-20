@@ -8,7 +8,7 @@
 """OpenDataLab python SDK version info."""
 
 __url__ = 'https://opendatalab-ut.shlab.tech'
-__version__ = "0.0.5"
+__version__ = "0.0.6"
 __svc__ = '2.0'
 #odl_clientId = "kmz3bkwzlaa3wrq8pvwa"
 # odl_clientId = "qja9jy5wnjyqwvylmeqw"

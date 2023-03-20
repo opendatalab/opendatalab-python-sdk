@@ -297,15 +297,15 @@ class Downloader:
             s = self.__download_record[-1]["size"] - self.__download_record[0]["size"]
             t = self.__download_record[-1]["timestamp"] - self.__download_record[0]["timestamp"]
             if not t == 0:
+                EPSILON = 1e-5
                 speed = s / t
                 readable_speed = self.__get_readable_size(speed)
                 # print(s,t,readable_speed)
                 percentage = self.__download_record[-1]["size"] / self.file_size * 100
-                status_msg = f"\r[Current File Download Info] File Progress: {percentage:.2f} % | Speed: {readable_speed}/s | Number of Workers: {len(self.workers)} | Time Elapsed: {(time.time() - self.start_since):.0f}s | ETA: {((self.file_size- dwn_size)/speed):.2f}s"
+                status_msg = f"\r[Current File Download Info] File Progress: {percentage:.2f} % | Speed: {readable_speed}/s | Number of Workers: {len(self.workers)} | Time Elapsed: {(time.time() - self.start_since):.0f}s | ETA: {((self.file_size- dwn_size)/(speed+EPSILON)):.2f}s"
                 self.__whistleblower(status_msg)
                 # speed monitor
                 maxspeed = max(maxspeed, speed)
-                EPSILON = 1e-5  
                 # tolerance reached
                 time_over = wait_times < 0
                 # not finished yet

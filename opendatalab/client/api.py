@@ -255,7 +255,6 @@ class OpenDataLabAPI(object):
 
     def odl_auth(self, account, password):
         code = get_odl_token(account, password)
-        print(code)
         data = {
             "code": code,
             "redirect": "",
@@ -267,7 +266,6 @@ class OpenDataLabAPI(object):
             data=data,
             headers={"Content-Type": "application/json"},
         )
-        print(resp.status_code)
         if resp.status_code != 200:
             raise OdlAuthError(resp.status_code, resp.text)
 
