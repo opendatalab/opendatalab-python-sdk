@@ -91,8 +91,7 @@ def login(obj: ContextInfo, username: str, password: str):
     implement_login(obj, username, password)
 
 
-@command(synopsis=(
-        "$ odl ls dataset              # list dataset files"))
+@command(synopsis=("$ odl ls dataset              # list dataset files",))
 @click.argument("name", nargs=1)
 @click.pass_obj
 def ls(obj: ContextInfo, name: str) -> None:
@@ -120,7 +119,7 @@ def search(obj: ContextInfo, keywords):
     implement_search(obj, keywords)
 
 
-@command(synopsis=("$ odl info dataset_name      # show dataset info.",))
+@command(synopsis=("$ odl info dataset_name      # show dataset info",))
 @click.argument("name", nargs=1)
 @click.pass_obj
 def info(obj: ContextInfo, name):
