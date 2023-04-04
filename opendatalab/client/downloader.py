@@ -81,42 +81,46 @@ class Downloader:
 
         # self.download_dir = os.path.join(download_dir, f".{os.sep}odl{os.sep}")
         self.blocks_num = blocks_num
+        self.__bad_url_flag = False
         self.file_size = self.__get_size()
         if self.file_size <= 1:
             return
+        if not self.__bad_url_flag:
         # make download dir
-        if not os.path.exists(self.download_dir):
-            os.makedirs(self.download_dir)
-            
-        # make cache dir
-        if self.prefix_flag:
-            self.cache_dir = os.path.join(self.download_dir,self.prefix,'.cache/')
-        else:
-            self.cache_dir = os.path.join(self.download_dir,'.cache/')
-        if not os.path.exists(self.cache_dir):
-            os.makedirs(self.cache_dir)
-        
-        # slicing
-        self.start_since = time.time()
-        # worker container
-        self.workers = []  
-        self.LOG = self.__get_log_from_cache() 
-        self.__done = threading.Event()
-        self.__download_record = []
-        threading.Thread(target=self.__supervise).start()
-        # main
-        self.__main_thread_done = threading.Event()
-        # 
-        readable_size = self.__get_readable_size(self.file_size)
-        pathfilename = os.path.join(self.download_dir, self.prefix,self.filename)
+            if not os.path.exists(self.download_dir):
+                os.makedirs(self.download_dir)
+                
+            # make cache dir
+            if self.prefix_flag:
+                self.cache_dir = os.path.join(self.download_dir,self.prefix,'.cache/')
+            else:
+                self.cache_dir = os.path.join(self.download_dir,'.cache/')
+            if not os.path.exists(self.cache_dir):
+                os.makedirs(self.cache_dir)
+            # print(self.url, self.file_size)
+            # slicing
+            self.start_since = time.time()
+            # worker container
+            self.workers = []  
+            self.LOG = self.__get_log_from_cache() 
+            self.__done = threading.Event()
+            self.__download_record = []
+            threading.Thread(target=self.__supervise).start()
+            # main
+            self.__main_thread_done = threading.Event()
+            # 
+            readable_size = self.__get_readable_size(self.file_size)
+            pathfilename = os.path.join(self.download_dir, self.prefix,self.filename)
 
     def __get_size(self):
         try:
             req = requests.head(self.url)
             content_length = req.headers["Content-Length"]
             req.close()
+            # print(req.headers)
             return int(content_length)
         except Exception as err:
+            self.__bad_url_flag = True
             self.__whistleblower(f"[Error] {err}")
             return 0
 

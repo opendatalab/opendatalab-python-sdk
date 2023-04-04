@@ -55,6 +55,15 @@ def implement_get(obj: ContextInfo, name: str, destination:str, num_workers:int)
         
     client = obj.get_client()
     data_info = client.get_api().get_info(dataset_name)
+    
+    # get risk level
+    info_dataset_risk = data_info['attrs']['riskLevel']
+    info_dataset_url = data_info['attrs']['publishUrl']
+    if info_dataset_risk > 3:
+        click.echo(f"Direct download for {dataset_name} is currently not available."
+                   f"\nPlease visit the homepage {info_dataset_url} for more information.")
+        sys.exit(1)
+
     info_dataset_name = data_info['name']
     info_dataset_id = data_info['id']
     
