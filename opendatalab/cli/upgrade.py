@@ -1,8 +1,9 @@
 #
 # Copyright 2022 Shanghai AI Lab. Licensed under MIT License.
 #
-import sys
 import operator
+import sys
+
 import click
 
 from opendatalab.__version__ import __version__

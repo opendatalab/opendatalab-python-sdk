@@ -91,6 +91,30 @@ class OpenDataLabAPI(object):
             sys.exit(-1)
         
         return download_url_list
+   
+    def get_auth_status(self, dataset_id:int):
+        """Get Dataset authentication status.
+
+
+        Args:
+            dataset_id (int): dataset id
+        """
+        resp = requests.get(
+            f"{self.host}/api/datasets/{dataset_id}/downloadAuth",
+            headers= {
+                "X-OPENDATALAB-API-TOKEN": self.token,
+                "Cookie": f"opendatalab_session={self.odl_cookie}",
+                "User-Agent": UUID,
+                "accept" : "application/json"
+            }
+        )
+        if resp.status_code != 200:
+            print(f"{OpenDataLabError(resp.status_code, resp.text)}")
+
+        result_status = resp.json()['data']
+        
+        return result_status
+    
     
     def get_dataset_sts(self, dataset, expires=900):
         """Get dataset sts by dataset_name

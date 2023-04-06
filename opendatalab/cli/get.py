@@ -15,6 +15,13 @@ from opendatalab.cli.utility import ContextInfo, exception_handler
 from opendatalab.client import downloader
 from opendatalab.exception import OdlDataNotExistsError
 
+STATUS_DICT = {
+    # "noAuthRequired": "No Authorization needed",
+    "pendingRequirement": "In order to download this dataset, please fill in an application form via our website.",
+    "waiting": "Authorization submitted, please wait for the application result",
+    "rejected": "Authorization submitted, but rejected. Please contact us for more information",
+    # "accepted": "Authorization submitted, download available."
+}
 
 def handler(dwCtrlType):
     if dwCtrlType == 0:  # CTRL_C_EVENT
@@ -38,6 +45,7 @@ def implement_get(obj: ContextInfo, name: str, destination:str, num_workers:int)
         compressed (bool):
     Returns:
     """
+    # process dataset_name and split
     ds_split = name.split("/")
     if ds_split[-1] == '':
         ds_split.pop()
@@ -53,9 +61,20 @@ def implement_get(obj: ContextInfo, name: str, destination:str, num_workers:int)
         dataset_name = name
         sub_dir = ""
         
+    # client init    
     client = obj.get_client()
     data_info = client.get_api().get_info(dataset_name)
     
+    # basic info of dataset
+    info_dataset_name = data_info['name']
+    info_dataset_id = data_info['id']
+    
+    # check the download authorization status.
+    auth_status = client.get_api().get_auth_status(dataset_id=info_dataset_id)
+    if auth_status['state'] in STATUS_DICT.keys():
+        click.echo(f"{STATUS_DICT[auth_status['state']]}")
+        sys.exit(1)
+        
     # get risk level
     info_dataset_risk = data_info['attrs']['riskLevel']
     info_dataset_url = data_info['attrs']['publishUrl']
@@ -64,8 +83,6 @@ def implement_get(obj: ContextInfo, name: str, destination:str, num_workers:int)
                    f"\nPlease visit the homepage {info_dataset_url} for more information.")
         sys.exit(1)
 
-    info_dataset_name = data_info['name']
-    info_dataset_id = data_info['id']
     
     dataset_res_dict = client.get_api().get_dataset_files(dataset_name=info_dataset_name,
                                                           prefix = sub_dir)
