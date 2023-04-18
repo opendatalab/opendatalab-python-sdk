@@ -56,7 +56,7 @@ Commands:
 ### Version
 ```cmd
 $ odl version
-odl version, current: 0.0.2, svc: 1.8
+odl version, current: 0.0.6, svc: 1.8
 ```
 
 ### Login

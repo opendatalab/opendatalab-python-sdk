@@ -95,7 +95,6 @@ class OpenDataLabAPI(object):
     def get_auth_status(self, dataset_id:int):
         """Get Dataset authentication status.
 
-
         Args:
             dataset_id (int): dataset id
         """
@@ -109,7 +108,7 @@ class OpenDataLabAPI(object):
             }
         )
         if resp.status_code != 200:
-            print(f"{OpenDataLabError(resp.status_code, resp.text)}")
+            click.echo(f"{OpenDataLabError(resp.status_code, resp.text)}")
 
         result_status = resp.json()['data']
         
@@ -191,7 +190,6 @@ class OpenDataLabAPI(object):
                      },
         )
         if resp.status_code != 200:
-            # print(f"{(resp.status_code, resp.text)}")
             sys.exit(-1)
 
         data = resp.json()['data']
