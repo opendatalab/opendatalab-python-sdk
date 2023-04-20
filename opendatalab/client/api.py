@@ -109,6 +109,7 @@ class OpenDataLabAPI(object):
         )
         if resp.status_code != 200:
             click.echo(f"{OpenDataLabError(resp.status_code, resp.text)}")
+            sys.exit(-1)
 
         result_status = resp.json()['data']
         
@@ -168,6 +169,7 @@ class OpenDataLabAPI(object):
                 "state": ["online"],
             })
         )
+        print(resp.status_code, resp.url)
         if resp.status_code != 200:
             print(f"{OpenDataLabError(resp.status_code, resp.text)}")
             sys.exit(-1)

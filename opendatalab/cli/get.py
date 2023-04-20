@@ -46,20 +46,18 @@ def implement_get(obj: ContextInfo, name: str, destination:str, num_workers:int)
     Returns:
     """
     # process dataset_name and split
+    # print(name)
     ds_split = name.split("/")
+    dataset_name = ds_split[0]
     if ds_split[-1] == '':
         ds_split.pop()
-    dataset_name = ds_split[0]
     single_file_flag = False
-    if len(ds_split) > 1:
+    sub_dir = "/".join(ds_split[1:])
+    if len(ds_split) > 2:
         # if a single file
         if ('.' in ds_split[-1]):
-            if len(ds_split) == 2:
-                single_file_flag = True
-        sub_dir = "/".join(ds_split[1:])
-    else:
-        dataset_name = name
-        sub_dir = ""
+            single_file_flag = True
+            sub_dir = "/".join(ds_split[1:-1])
         
     # client init    
     client = obj.get_client()
@@ -76,7 +74,7 @@ def implement_get(obj: ContextInfo, name: str, destination:str, num_workers:int)
         sys.exit(1)
         
     # get risk level
-    info_dataset_risk = data_info['attrs']['riskLevel']
+    info_dataset_risk = data_info['attrs'].get('riskLevel', 0)
     info_dataset_url = data_info['attrs']['publishUrl']
     if info_dataset_risk > 3:
         click.echo(f"Direct download for {dataset_name} is currently not available."
@@ -86,7 +84,7 @@ def implement_get(obj: ContextInfo, name: str, destination:str, num_workers:int)
     
     dataset_res_dict = client.get_api().get_dataset_files(dataset_name=info_dataset_name,
                                                           prefix = sub_dir)
-    
+    print(dataset_res_dict, sub_dir, single_file_flag)
     total_object = dataset_res_dict['total']
 
     # obj list constuct
@@ -100,9 +98,9 @@ def implement_get(obj: ContextInfo, name: str, destination:str, num_workers:int)
             elif len(sub_dir.split('/')) > 1:
                 curr_dict['name'] = sub_dir
             else:
-                curr_dict['name'] = os.path.join(sub_dir,info['path'])
+                curr_dict['name'] = info['path']
             obj_info_list.append(curr_dict)
-
+    print(obj_info_list)
     local_dir = destination
     
     download_data = client.get_api().get_download_record(info_dataset_name)
@@ -133,6 +131,7 @@ def implement_get(obj: ContextInfo, name: str, destination:str, num_workers:int)
             download_urls_list = client.get_api().get_dataset_download_urls(
                                                             dataset_id=info_dataset_id, 
                                                             dataset_list=dataset_seg_list)
+            # print(download_urls_list)
             url_download = download_urls_list[0]['url']
             filename = download_urls_list[0]['name']
             # print(url_download, filename)
@@ -142,6 +141,8 @@ def implement_get(obj: ContextInfo, name: str, destination:str, num_workers:int)
                 click.echo('target already exists, jumping to next!')
                 pbar.update(1)
                 continue
+            
+            print(url_download,filename)
             downloader.Downloader(url = url_download, 
                                   filename= filename, 
                                   download_dir = os.path.join(destination, info_dataset_name), 

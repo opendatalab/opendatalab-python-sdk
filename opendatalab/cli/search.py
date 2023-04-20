@@ -55,7 +55,7 @@ def implement_search(obj: ContextInfo, keywords: str) -> None:
     time_start =time.time()
     result_list = odl_api.search_dataset(keywords)
     time_end = time.time()
-    print('-------------time_consuming--------', time_end - time_start, 's')
+    # print('-------------time_consuming--------', time_end - time_start, 's')
     console = Console()
     table = Table(show_header=True, header_style='bold cyan', box=box.ASCII2)
     table.add_column("Name", min_width=10, justify='left', overflow='fold')
@@ -77,8 +77,8 @@ def implement_search(obj: ContextInfo, keywords: str) -> None:
             ds_desc_rich = rich_content_str(keywords=keywords, content=ds_desc)
 
             ds_attr_info = res['attrs']
-            ds_file_byte = bytes2human(ds_attr_info['fileBytes'])
-            ds_file_count = ds_attr_info['fileCount']
+            ds_file_byte = bytes2human(ds_attr_info.get('fileBytes', 0))
+            ds_file_count = ds_attr_info.get('fileCount',0)
 
             ds_data_types = _get_complex_types_str(ds_attr_info, 'mediaTypes')
             ds_task_types = _get_complex_types_str(ds_attr_info, 'taskTypes')

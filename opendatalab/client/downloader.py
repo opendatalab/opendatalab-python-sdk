@@ -114,10 +114,16 @@ class Downloader:
 
     def __get_size(self):
         try:
-            req = requests.head(self.url)
-            content_length = req.headers["Content-Length"]
-            req.close()
+            # print(self.url)
+            # req = requests.head(self.url)
             # print(req.headers)
+            # content_length = req.headers["Content-Length"]
+            resp = requests.get(self.url,stream=True)
+            content_length = resp.headers["Content-Length"]
+            # print(f"-------------{content_length}--------------")
+            resp.close()
+            # print(req.headers)
+            # print(req.headers["Content-Length"])
             return int(content_length)
         except Exception as err:
             self.__bad_url_flag = True
