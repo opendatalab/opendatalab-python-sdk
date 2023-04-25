@@ -84,7 +84,6 @@ def implement_get(obj: ContextInfo, name: str, destination:str, num_workers:int)
     
     dataset_res_dict = client.get_api().get_dataset_files(dataset_name=info_dataset_name,
                                                           prefix = sub_dir)
-    print(dataset_res_dict, sub_dir, single_file_flag)
     total_object = dataset_res_dict['total']
 
     # obj list constuct
@@ -100,7 +99,7 @@ def implement_get(obj: ContextInfo, name: str, destination:str, num_workers:int)
             else:
                 curr_dict['name'] = info['path']
             obj_info_list.append(curr_dict)
-    print(obj_info_list)
+
     local_dir = destination
     
     download_data = client.get_api().get_download_record(info_dataset_name)
@@ -142,7 +141,6 @@ def implement_get(obj: ContextInfo, name: str, destination:str, num_workers:int)
                 pbar.update(1)
                 continue
             
-            print(url_download,filename)
             downloader.Downloader(url = url_download, 
                                   filename= filename, 
                                   download_dir = os.path.join(destination, info_dataset_name), 
