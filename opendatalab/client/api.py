@@ -169,7 +169,7 @@ class OpenDataLabAPI(object):
                 "state": ["online"],
             })
         )
-        print(resp.status_code, resp.url)
+        # print(resp.status_code, resp.url)
         if resp.status_code != 200:
             print(f"{OpenDataLabError(resp.status_code, resp.text)}")
             sys.exit(-1)
