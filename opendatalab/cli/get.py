@@ -58,6 +58,7 @@ def implement_get(obj: ContextInfo, name: str, destination:str, num_workers:int)
         if ('.' in ds_split[-1]):
             single_file_flag = True
             sub_dir = "/".join(ds_split[1:-1])
+            file_name = sub_dir + '/' + ds_split[-1]
         
     # client init    
     client = obj.get_client()
@@ -84,21 +85,31 @@ def implement_get(obj: ContextInfo, name: str, destination:str, num_workers:int)
     
     dataset_res_dict = client.get_api().get_dataset_files(dataset_name=info_dataset_name,
                                                           prefix = sub_dir)
-    total_object = dataset_res_dict['total']
-
-    # obj list constuct
-    obj_info_list = []
-    for info in dataset_res_dict['list']:
-        curr_dict = {}
-        if not info['isDir']:
-            curr_dict['size'] = info['size']
-            if single_file_flag:
+    # print(dataset_res_dict)
+    if not single_file_flag:
+        total_object = dataset_res_dict['total']
+        # obj list constuct
+        obj_info_list = []
+        for info in dataset_res_dict['list']:
+            curr_dict = {}
+            if not info['isDir']:
+                curr_dict['size'] = info['size']
+                if single_file_flag:
+                    curr_dict['name'] = info['path']
+                elif len(sub_dir.split('/')) > 1:
+                    curr_dict['name'] = sub_dir
+                else:
+                    curr_dict['name'] = info['path']
+                obj_info_list.append(curr_dict)
+    else:
+        total_object = 1
+        obj_info_list = []
+        for info in dataset_res_dict['list']:
+            curr_dict = {}
+            if info['path'] == str(file_name):
+                curr_dict['size'] = info['size']
                 curr_dict['name'] = info['path']
-            elif len(sub_dir.split('/')) > 1:
-                curr_dict['name'] = sub_dir
-            else:
-                curr_dict['name'] = info['path']
-            obj_info_list.append(curr_dict)
+                obj_info_list.append(curr_dict)
 
     local_dir = destination
     
