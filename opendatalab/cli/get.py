@@ -59,7 +59,6 @@ def implement_get(obj: ContextInfo, name: str, destination:str, num_workers:int)
             single_file_flag = True
             sub_dir = "/".join(ds_split[1:-1])
             file_name = sub_dir + '/' + ds_split[-1]
-        
     # client init    
     client = obj.get_client()
     data_info = client.get_api().get_info(dataset_name)
@@ -97,7 +96,8 @@ def implement_get(obj: ContextInfo, name: str, destination:str, num_workers:int)
                 if single_file_flag:
                     curr_dict['name'] = info['path']
                 elif len(sub_dir.split('/')) > 1:
-                    curr_dict['name'] = sub_dir
+                    # curr_dict['name'] = sub_dir
+                    curr_dict['name'] = info['path']
                 else:
                     curr_dict['name'] = info['path']
                 obj_info_list.append(curr_dict)
