@@ -53,13 +53,17 @@ def implement_get(obj: ContextInfo, name: str, destination:str, num_workers:int)
         ds_split.pop()
     single_file_flag = False
     sub_dir = "/".join(ds_split[1:])
-    if len(ds_split) > 2:
-        # if a single file
-        if ('.' in ds_split[-1]):
-            single_file_flag = True
+    
+    if ('.' in ds_split[-1]):
+        single_file_flag = True
+        if len(ds_split) == 2:
+            # indicate README.md
+            file_name = ds_split[-1]
+            sub_dir = ''
+        elif len(ds_split) > 2:
             sub_dir = "/".join(ds_split[1:-1])
             file_name = sub_dir + '/' + ds_split[-1]
-    # client init    
+                # client init
     client = obj.get_client()
     data_info = client.get_api().get_info(dataset_name)
     
@@ -84,7 +88,6 @@ def implement_get(obj: ContextInfo, name: str, destination:str, num_workers:int)
     
     dataset_res_dict = client.get_api().get_dataset_files(dataset_name=info_dataset_name,
                                                           prefix = sub_dir)
-    # print(dataset_res_dict)
     if not single_file_flag:
         total_object = dataset_res_dict['total']
         # obj list constuct
