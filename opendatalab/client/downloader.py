@@ -291,7 +291,7 @@ class Downloader:
 
     def __supervise(self):
         """worker and download status supervisor"""
-        REFRESH_INTERVAL = 1
+        REFRESH_INTERVAL = 2
         # serve as a time window-length
         LAG_COUNT = 5
         WAIT_TIMES_BEFORE_RESTART = 30

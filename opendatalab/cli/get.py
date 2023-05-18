@@ -54,7 +54,7 @@ def implement_get(obj: ContextInfo, name: str, destination:str, num_workers:int)
     single_file_flag = False
     sub_dir = "/".join(ds_split[1:])
     
-    if ('.' in ds_split[-1]):
+    if len(ds_split) >= 2 and ('.' in ds_split[-1]):
         single_file_flag = True
         if len(ds_split) == 2:
             # indicate README.md
