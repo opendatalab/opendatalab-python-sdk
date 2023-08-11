@@ -4,17 +4,19 @@
 #
 
 """OpenDataLab CLI utility functions."""
-import sys
 import json
+import sys
 from functools import wraps
 from typing import Any, Callable, TypeVar
-import click
-from opendatalab.__version__ import __version__
 
+import click
+from rich import print as rprint
+
+from opendatalab.__version__ import __version__
 from opendatalab.cli.config import config as client_config
 from opendatalab.client import Client
-from opendatalab.utils import UUID
 from opendatalab.exception import OpenDataLabError
+from opendatalab.utils import UUID
 
 _Callable = TypeVar("_Callable", bound=Callable[..., None])
 
@@ -34,6 +36,8 @@ class ContextInfo:
         self.check_ret = 0
         self.install_version = __version__
         self.latest_version = None
+        self.warning = "[red]WARNING[/red]:This CLI tool is deprecated and will be removed in a future release.\nThe [bold yellow]opendatalab(odl)[/bold yellow] pkg has been deprecated and will no longer be supported in few weeks.\nWe recommend that you switch to the [bold yellow]openxlab[/bold yellow] pkg, which accept same username/password,\nprovides the same functionality and other enhanced AI friendly features.\nMore details please refer to [blue]https://openxlab.org.cn/datasets[/blue]\n"
+        rprint(self.warning)
 
     def get_client(self) -> Client:
         return Client(self.url, self.token, self.cookie)

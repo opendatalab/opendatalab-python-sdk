@@ -1,14 +1,14 @@
+import json
 import sys
+import time
+from base64 import b64decode, b64encode
 
 import click
 import requests
-import json
-import time
-from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5
-from base64 import b64encode, b64decode
+from Crypto.PublicKey import RSA
 
-from opendatalab.__version__ import uaa_url_prefix, odl_clientId
+from opendatalab.__version__ import odl_clientId, uaa_url_prefix
 
 api_login = "/api/v1/login/byClientSdk"
 api_public_key = "/api/v1/cipher/getPubKey"
@@ -121,6 +121,7 @@ def get_odl_token(account, password):
         auth_code = get_auth_code(sso_uid=sso_uid)
 
     if not auth_code:
+        print(auth_code)
         click.secho(f"Error: Auth failure with account: {account}", err=True, fg="red")
         sys.exit(1)
 

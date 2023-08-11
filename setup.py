@@ -1,7 +1,8 @@
 import os
+
 import setuptools
 
-about = {}
+about = {}  # type: ignore
 here = os.path.abspath(os.path.dirname(__file__))
 with open(
     os.path.join(here, "opendatalab", "__version__.py"), "r", encoding="utf-8"
@@ -14,6 +15,6 @@ with open("README.md", "r", encoding="utf-8") as fh:
 setuptools.setup(
     version=about["__version__"],
     project_urls={
-        "Bug Tracker": "https://github.com/opendatalab/opendatalab-python-sdk/-/tree/main/-/issues",
+        "Bug Tracker": "https://github.com/opendatalab/opendatalab-python-sdk/issues",
     },
 )

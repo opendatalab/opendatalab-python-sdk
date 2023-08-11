@@ -19,7 +19,103 @@ class OpenDataLabAPI(object):
         self.host = host
         self.token = token
         self.odl_cookie = odl_cookie
+        
+    def get_dataset_files(self, dataset_name:str, prefix:str):
+        """ https request retrieve dataset files
+        Args:
+            dataset (str): dataset name
+            
+        Returns:
+            result_dict: 2 keys:
+                  dict['list']:contain list of files 
+                  dict['total']:files count.
+        """
+        
+        header_dict = {"X-OPENDATALAB-API-TOKEN": self.token,
+                "Cookie": f"opendatalab_session={self.odl_cookie}",
+                "User-Agent": UUID,
+                "accept" : "application/json"
+                }
+        data = {"recursive": True,
+                "prefix":prefix}
+        resp = requests.get(
+            url = f"{self.host}/api/datasets/{dataset_name}/files",
+            params = data,
+            headers = header_dict
+        )
+        if resp.status_code != 200:
+            if resp.status_code == 404:
+                raise OdlDataNotExistsError()
+            elif resp.status_code == 401:
+                raise OdlAuthError()
+            elif resp.status_code == 403:
+                raise OdlAccessDeniedError()
+            elif resp.status_code == 412:
+                raise OdlAccessCdnError()
+            elif resp.status_code == 500:
+                raise OdlAccessDeniedError()
+            else:
+                raise RespError(resp_code=resp.status_code, error_msg=resp.reason)
+        
+        result_dict = resp.json()['data']
+        
+        return result_dict
+    
+    def get_dataset_download_urls(self, dataset_id:int, dataset_list:list):
+        """get Dataset segments downloadable url
 
+        Args:
+            dataset (str): dataset name
+            dataset_list (list): list of dict contain segment size and name
+            
+        Returns:
+            download_url_list: list of dict contain segment name and executable url.
+        """
+        resp = requests.post(
+            f"{self.host}/api/track/datasets/download/{dataset_id}",
+            data = json.dumps(dataset_list),
+            headers={
+                    "Content-Type": "application/json",
+                    "Cookie": f"opendatalab_session={self.odl_cookie}",
+                    "User-Agent": f"opendatalab-python-sdk/{__version__}",
+                    "accept": "application/json"
+            }
+        )
+        if resp.status_code != 200:
+            print(f"{OpenDataLabError(resp.status_code, resp.text)}")
+            sys.exit(-1)
+        
+        download_url_list = resp.json()['data']
+        if not download_url_list:
+            click.secho(f"No datasets matched!", fg='red')
+            sys.exit(-1)
+        
+        return download_url_list
+   
+    def get_auth_status(self, dataset_id:int):
+        """Get Dataset authentication status.
+
+        Args:
+            dataset_id (int): dataset id
+        """
+        resp = requests.get(
+            f"{self.host}/api/datasets/{dataset_id}/downloadAuth",
+            headers= {
+                "X-OPENDATALAB-API-TOKEN": self.token,
+                "Cookie": f"opendatalab_session={self.odl_cookie}",
+                "User-Agent": UUID,
+                "accept" : "application/json"
+            }
+        )
+        if resp.status_code != 200:
+            click.echo(f"{OpenDataLabError(resp.status_code, resp.text)}")
+            sys.exit(-1)
+
+        result_status = resp.json()['data']
+        
+        return result_status
+    
+    
     def get_dataset_sts(self, dataset, expires=900):
         """Get dataset sts by dataset_name
         Args:
@@ -58,43 +154,22 @@ class OpenDataLabAPI(object):
         # print(f"sts api, headers: {resp.headers}, text: {resp.text}")
         return resp.json()["data"]
 
-    @DeprecationWarning
-    def login(self, username: str, password: str):
-        data = {
-            "email": username,
-            "password": password,
-        }
-        data = json.dumps(data)
-        resp = requests.post(
-            f"{self.host}/api/users/login",
-            data=data,
-            headers={"Content-Type": "application/json"},
-        )
-        if resp.status_code != 200:
-            raise OdlAuthError(resp.status_code, resp.text)
-
-        cookies_dict = requests.utils.dict_from_cookiejar(resp.cookies)
-
-        if 'opendatalab_session' in cookies_dict.keys():
-            opendatalab_session = cookies_dict['opendatalab_session']
-        else:
-            raise OpenDataLabError(resp.status_code, "No opendatalab_session")
-
-        config_json = {
-            'user.email': username,
-            'user.token': opendatalab_session,
-        }
-
-        return config_json
-
     def search_dataset(self, keywords):
-        resp = requests.get(
-            f"{self.host}/api/datasets/?pageSize=25&keywords={keywords}",
+        resp = requests.post(  # f"{self.host}/api/datasets/?pageSize=25&keywords={keywords}",
+            f"{self.host}/api/datasets/list",
             headers={"X-OPENDATALAB-API-TOKEN": self.token,
                      "Cookie": f"opendatalab_session={self.odl_cookie}",
                      "User-Agent": f"opendatalab-python-sdk/{__version__}",
+                     "Content-Type": "application/json"
                      },
+            data=json.dumps({
+                "backend": False,
+                "keywords": keywords,
+                "pageSize": 25,
+                "state": ["online"],
+            })
         )
+        # print(resp.status_code, resp.url)
         if resp.status_code != 200:
             print(f"{OpenDataLabError(resp.status_code, resp.text)}")
             sys.exit(-1)
@@ -113,10 +188,10 @@ class OpenDataLabAPI(object):
             headers={"X-OPENDATALAB-API-TOKEN": self.token,
                      "Cookie": f"opendatalab_session={self.odl_cookie}",
                      "User-Agent": f"opendatalab-python-sdk/{__version__}",
+                     "Content-Type": "application/json"
                      },
         )
         if resp.status_code != 200:
-            # print(f"{(resp.status_code, resp.text)}")
             sys.exit(-1)
 
         data = resp.json()['data']
@@ -124,10 +199,11 @@ class OpenDataLabAPI(object):
 
     def get_info(self, dataset):
         resp = requests.get(
-            f"{self.host}/api/datasets/{dataset}",
+            f"{self.host}/api/datasets/{dataset}?backend=false",
             headers={"X-OPENDATALAB-API-TOKEN": self.token,
                      "Cookie": f"opendatalab_session={self.odl_cookie}",
                      "User-Agent": f"opendatalab-python-sdk/{__version__}",
+                     "Content-Type": "application/json"
                      },
         )
         if resp.status_code != 200:
@@ -151,6 +227,7 @@ class OpenDataLabAPI(object):
             headers={"Content-Type": "application/json",
                      "Cookie": f"opendatalab_session={self.odl_cookie}",
                      "User-Agent": f"opendatalab-python-sdk/{__version__}",
+                     "Content-Type": "application/json"
                      },
         )
 
@@ -164,6 +241,7 @@ class OpenDataLabAPI(object):
             headers={"Content-Type": "application/json",
                      "Cookie": f"opendatalab_session={self.odl_cookie}",
                      "User-Agent": f"opendatalab-python-sdk/{__version__}",
+                     "Content-Type": "application/json"
                      },
         )
 
@@ -192,6 +270,7 @@ class OpenDataLabAPI(object):
             headers={"Content-Type": "application/json",
                      "Cookie": f"opendatalab_session={self.odl_cookie}",
                      "User-Agent": f"opendatalab-python-sdk/{__version__}",
+                     "Content-Type": "application/json"
                      },
         )
 
@@ -211,7 +290,6 @@ class OpenDataLabAPI(object):
             data=data,
             headers={"Content-Type": "application/json"},
         )
-
         if resp.status_code != 200:
             raise OdlAuthError(resp.status_code, resp.text)
 

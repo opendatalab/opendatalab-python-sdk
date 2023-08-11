@@ -56,7 +56,7 @@ Commands:
 ### Version
 ```cmd
 $ odl version
-odl version, current: 0.0.2, svc: 1.8
+odl version, current: 0.0.6, svc: 1.8
 ```
 
 ### Login
@@ -64,11 +64,11 @@ Login with opendatalab username and password. If you haven't an opendatalab acco
 
 ```cmd
 $ odl login
-Username []: wangrui@pjlab.org.cn
+Username []: someone@example.com
 Password []: 
-Login successfully as wangrui@pjlab.org.cn
+Login successfully as someone@example.com
 or
-$ odl login -u wangrui@pjlab.org.cn
+$ odl login -u someone@example.com
 Password[]:
 ```
 
@@ -77,7 +77,7 @@ Logout current opendatalab account
 ```cmd
 $ odl logout
 Do you want to logout? [y/N]: y
-wangrui@pjlab.org.cn.com logout
+someone@example.com logout
 ```
 
 

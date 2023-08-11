@@ -25,6 +25,7 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+ILSVRC2012_Images
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -81,6 +82,7 @@ target/
 # IPython
 profile_default/
 ipython_config.py
+tutorial.ipynb
 
 # PEP 582; used by e.g. github.com/David-OConnor/pyflow
 __pypackages__/

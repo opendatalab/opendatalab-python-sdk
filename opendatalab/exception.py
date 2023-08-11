@@ -27,7 +27,7 @@ class RespError(OpenDataLabError):
 
     """
     STATUS_CODE: int
-    _INDENT = " " * len(__qualname__)
+    _INDENT = " " * len(__qualname__)  # type: ignore
 
     def __init__(self, resp_code: Optional[int] = None, error_msg: str = ""):
         super().__init__(resp_code, error_msg)
